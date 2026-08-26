@@ -620,9 +620,26 @@ export const AuthPage = ({ onSuccess }) => {
 
             {/* Error or Success notification */}
             {(localError || authError) && (
-              <div className="p-3.5 rounded-2xl bg-[#A85448]/10 border border-[#A85448]/30 flex items-start gap-2.5 text-xs text-[#A85448]">
-                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                <span className="font-semibold">{localError || authError}</span>
+              <div className="p-4 rounded-2xl bg-[#A85448]/10 border border-[#A85448]/30 space-y-2 text-xs text-[#A85448]">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span className="font-semibold">{localError || authError}</span>
+                </div>
+
+                {/* Specific Actionable Help for auth/unauthorized-domain */}
+                {((localError && localError.includes("not authorized in Firebase")) || (authError && authError.includes("not authorized in Firebase"))) && (
+                  <div className="pt-2 border-t border-[#A85448]/20 text-[11px] text-[#2C2C24] space-y-1.5 bg-[#FEFEFA]/80 p-3 rounded-xl">
+                    <p className="font-bold text-[#A85448]">How to fix in 30 seconds:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-[#78786C]">
+                      <li>Open <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-[#5D7052] font-bold underline">Firebase Console</a> &gt; Select your project</li>
+                      <li>Go to <strong>Authentication</strong> &gt; <strong>Settings</strong> &gt; <strong>Authorized Domains</strong></li>
+                      <li>Click <strong>Add domain</strong> and paste: <code className="bg-[#F0EBE5] px-1.5 py-0.5 rounded font-mono text-[#2C2C24] font-bold">{typeof window !== 'undefined' ? window.location.hostname : 'sufala.vercel.app'}</code></li>
+                    </ol>
+                    <p className="text-[10px] text-[#5D7052] font-semibold pt-1">
+                      💡 Tip: You can also register or sign in with <strong>Email &amp; Password</strong> right now without domain setup!
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

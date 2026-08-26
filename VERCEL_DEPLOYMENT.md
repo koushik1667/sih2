@@ -67,7 +67,22 @@ Before clicking **Deploy**, expand the **"Environment Variables"** section in th
 
 ---
 
-## 5. Automatic CI/CD Deployments
+## 5. Authorize Your Vercel Domain in Firebase Console (Fix `auth/unauthorized-domain`)
+
+Whenever you deploy to a new domain like `sufala.vercel.app`, Firebase requires you to whitelist the domain for OAuth sign-in (Google Authentication):
+
+1. Go to **[Firebase Console](https://console.firebase.google.com/)** and select your project.
+2. Navigate to **Build** &rarr; **Authentication** &rarr; **Settings** tab.
+3. Click **Authorized domains**.
+4. Click **Add domain**.
+5. Type `sufala.vercel.app` (and `vercel.app` if desired), then click **Add**.
+6. Google Sign-In and OAuth popups will immediately start working on your live Vercel URL!
+
+*(Note: Email & Password sign-in / registration works immediately across any domain even prior to adding authorized domains).*
+
+---
+
+## 6. Automatic CI/CD Deployments
 
 Every time you push a commit to your `main` branch on GitHub:
 ```bash

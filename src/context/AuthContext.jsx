@@ -104,6 +104,10 @@ export const AuthProvider = ({ children }) => {
         msg = "Sign-in popup was blocked by browser. Please allow popups.";
       } else if (error.code === 'auth/account-exists-with-different-credential') {
         msg = "An account already exists with this email address.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        msg = `The domain "${window.location.hostname}" is not authorized in Firebase Authentication. Please add "${window.location.hostname}" to Firebase Console -> Authentication -> Settings -> Authorized Domains. In the meantime, you can create an account or sign in with Email & Password.`;
+      } else if (error.code === 'auth/operation-not-allowed') {
+        msg = "Google Sign-In is not enabled in Firebase Console. Please enable it under Authentication -> Sign-in method, or sign in with Email & Password.";
       }
       setAuthError(msg);
       throw new Error(msg);
