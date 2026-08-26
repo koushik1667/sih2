@@ -56,9 +56,6 @@ services:
       ML_SERVICE_URL:    http://ml-service:5001
       CLIENT_URL:        ${CLIENT_URL:-http://localhost:5173}
       WEATHER_API_KEY:   ${WEATHER_API_KEY:-}
-      MSG91_API_KEY:     ${MSG91_API_KEY:-}
-      MSG91_FLOW_ID:     ${MSG91_FLOW_ID:-}
-      FCM_SERVER_KEY:    ${FCM_SERVER_KEY:-}
     depends_on:
       mongo:
         condition: service_healthy

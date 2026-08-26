@@ -10,19 +10,30 @@ import {
   Globe, 
   ChevronDown,
   Navigation as NavigationIcon,
-  Bell
+  Bell,
+  User,
+  LogIn,
+  ShieldCheck
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocation } from '../context/LocationContext';
+import { useAuth } from '../context/AuthContext';
 import { NotificationCenter } from './NotificationCenter';
+import { AuthModal } from './AuthModal';
+import { UserProfileModal } from './UserProfileModal';
 import { api } from '../services/api';
 
 export const Navigation = () => {
   const { activeTab, setActiveTab, farms, selectedFarm, setSelectedFarm, backendHealth } = useApp();
   const { lang, setLang, t, supportedLanguages } = useLanguage();
   const { locationState, isTracking, setIsTrackerOpen } = useLocation();
+  const { user, userProfile, isAuthenticated } = useAuth();
+  
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadAlerts, setUnreadAlerts] = useState(2);
 
   useEffect(() => {
@@ -42,6 +53,7 @@ export const Navigation = () => {
   }, [isNotifOpen]);
 
   const navItems = [
+    { id: 'home', label: 'Home', icon: Globe },
     { id: 'command_center', label: t('nav_command_center'), icon: LayoutDashboard },
     { id: 'satellite_srm', label: t('nav_satellite_srm'), icon: Satellite, badge: 'GeoSR' },
     { id: 'soil_precision', label: t('nav_soil_precision'), icon: Sprout },
@@ -49,6 +61,7 @@ export const Navigation = () => {
     { id: 'ai_agronomist', label: t('nav_ai_agronomist'), icon: Bot },
     { id: 'farms', label: t('nav_farms'), icon: MapPin },
     { id: 'weather', label: t('nav_weather'), icon: CloudSun },
+    { id: 'login', label: isAuthenticated ? 'Farmer Account' : 'Login Dashboard', icon: User, badge: isAuthenticated ? 'Cloud' : undefined }
   ];
 
   return (
@@ -80,8 +93,9 @@ export const Navigation = () => {
             </div>
           </div>
 
-          {/* Right Controls: Farm Selector, Language, System Status */}
+          {/* Right Controls: Farm Selector, Language, Account Pill, Notification Bell */}
           <div className="flex items-center gap-2 sm:gap-3">
+            
             {/* Live GPS Tracker Pill */}
             <button
               onClick={() => setIsTrackerOpen(true)}
@@ -140,13 +154,34 @@ export const Navigation = () => {
               </select>
             </div>
 
-            {/* Backend Health Status Badge */}
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EBE5]/60 border border-[#DED8CF]">
-              <span className={`w-2.5 h-2.5 rounded-full ${backendHealth.status === 'healthy' || backendHealth.status === 'ok' ? 'bg-[#5D7052] shadow-[0_0_8px_rgba(93,112,82,0.6)]' : 'bg-[#C18C5D]'}`} />
-              <span className="text-[11px] font-bold text-[#2C2C24] hidden lg:inline">
-                {backendHealth.status === 'healthy' || backendHealth.status === 'ok' ? t('status_online') : 'Local Mode'}
-              </span>
-            </div>
+            {/* Auth / Account Profile Button */}
+            {isAuthenticated ? (
+              <button
+                onClick={() => setActiveTab('login')}
+                className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#5D7052]/10 border border-[#5D7052]/30 text-xs font-bold text-[#2C2C24] hover:bg-[#5D7052]/20 transition cursor-pointer"
+                title="View & Edit Cloud Database Profile"
+              >
+                <div className="w-5 h-5 rounded-full bg-[#5D7052] text-[#FEFEFA] flex items-center justify-center text-[10px] overflow-hidden">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (userProfile?.displayName || user.displayName || user.email || 'F').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <span className="truncate max-w-[90px] hidden sm:inline">
+                  {userProfile?.displayName || user.displayName || 'Farmer'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveTab('login')}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-[#FEFEFA] text-xs font-bold shadow-soft transition cursor-pointer"
+                title="Open Login & Account Page"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+            )}
 
             {/* FCM HTTP v1 Notification Bell Trigger */}
             <button
@@ -202,6 +237,19 @@ export const Navigation = () => {
       <NotificationCenter 
         isOpen={isNotifOpen} 
         onClose={() => setIsNotifOpen(false)} 
+      />
+
+      {/* Auth Modal (Email/Password + Google Login) */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        initialMode={authMode}
+        onClose={() => setIsAuthOpen(false)}
+      />
+
+      {/* User Cloud Database & Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
       />
     </header>
   );

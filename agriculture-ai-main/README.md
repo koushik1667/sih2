@@ -71,7 +71,7 @@ python app.py
 ## Next Steps
 
 - Add OCR for Soil Health Cards (Tesseract.js)
-- WhatsApp bot integration (Twilio)
+- Push Notification Alerts (Firebase Cloud Messaging)
 - Advanced ML models with real training data
 - Admin panel for crop database management
 - PDF report generation

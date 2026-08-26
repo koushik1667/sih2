@@ -19,6 +19,7 @@ venv.bak/
 # Build and distribution
 dist/
 build/
+.vercel
 *.egg-info/
 .eggs/
 

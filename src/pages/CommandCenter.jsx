@@ -78,21 +78,21 @@ export const CommandCenter = () => {
       {/* Top 4 Core Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title={t('cmd_active_farms')}
-          value={`${farms.reduce((acc, f) => acc + (f.land_size_acres || 0), 0).toFixed(1)} Acres`}
-          subtitle="4 Registered Multi-Crop Parcels"
+          title={selectedFarm ? "Selected Farm Land" : t('cmd_active_farms')}
+          value={selectedFarm ? `${selectedFarm.land_size_acres} Acres` : `${farms.reduce((acc, f) => acc + (f.land_size_acres || 0), 0).toFixed(1)} Acres`}
+          subtitle={selectedFarm ? `${selectedFarm.name} (${selectedFarm.location})` : `${farms.length} Registered Multi-Crop Parcels`}
           icon={MapPin}
-          trend="+18.5% YoY"
+          trend={selectedFarm ? `${selectedFarm.current_crop} (${selectedFarm.active_season || 'Kharif'})` : "+18.5% YoY"}
           trendPositive={true}
           color="moss"
           onClick={() => setActiveTab('farms')}
         />
         <MetricCard
-          title={t('cmd_avg_soil_health')}
-          value="78.2 / 100"
-          subtitle="Optimal NPK Balance & 0.82% OC"
+          title={selectedFarm ? `${selectedFarm.name.split(' ')[0]} Soil Index` : t('cmd_avg_soil_health')}
+          value={selectedFarm ? `${selectedFarm.soil_health?.score || 78.2} / 100` : "78.2 / 100"}
+          subtitle={selectedFarm ? `N: ${selectedFarm.soil_health?.nitrogen || 180} | P: ${selectedFarm.soil_health?.phosphorus || 30} | K: ${selectedFarm.soil_health?.potassium || 150}` : "Optimal NPK Balance & 0.82% OC"}
           icon={Sprout}
-          trend="Stable (Low Risk)"
+          trend={selectedFarm ? (selectedFarm.soil_health?.score >= 80 ? "Excellent Fertility" : "Stable (Low Risk)") : "Stable (Low Risk)"}
           trendPositive={true}
           color="moss"
           onClick={() => setActiveTab('soil_precision')}
@@ -169,7 +169,7 @@ export const CommandCenter = () => {
           </div>
 
           {/* Active Field Overview */}
-          {selectedFarm && (
+          {selectedFarm ? (
             <div className="p-7 rounded-[2.25rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -189,17 +189,35 @@ export const CommandCenter = () => {
               <div className="grid grid-cols-3 gap-3 mt-4 text-center text-xs">
                 <div className="p-3 rounded-2xl bg-[#F0EBE5]/60 border border-[#DED8CF]">
                   <span className="text-[10px] text-[#78786C] font-bold uppercase block">Nitrogen (N)</span>
-                  <span className="font-serif font-bold text-[#5D7052] text-base">{selectedFarm.soil_health.nitrogen} kg/ha</span>
+                  <span className="font-serif font-bold text-[#5D7052] text-base">{selectedFarm.soil_health?.nitrogen ?? 160} kg/ha</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-[#F0EBE5]/60 border border-[#DED8CF]">
                   <span className="text-[10px] text-[#78786C] font-bold uppercase block">Phosphorus (P)</span>
-                  <span className="font-serif font-bold text-[#C18C5D] text-base">{selectedFarm.soil_health.phosphorus} kg/ha</span>
+                  <span className="font-serif font-bold text-[#C18C5D] text-base">{selectedFarm.soil_health?.phosphorus ?? 30} kg/ha</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-[#F0EBE5]/60 border border-[#DED8CF]">
                   <span className="text-[10px] text-[#78786C] font-bold uppercase block">Potassium (K)</span>
-                  <span className="font-serif font-bold text-[#78786C] text-base">{selectedFarm.soil_health.potassium} kg/ha</span>
+                  <span className="font-serif font-bold text-[#78786C] text-base">{selectedFarm.soil_health?.potassium ?? 140} kg/ha</span>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="p-7 rounded-[2.25rem] bg-[#FEFEFA] border border-dashed border-[#DED8CF] shadow-soft flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-[#5D7052]/10 text-[#5D7052]">
+                  <Sprout className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-[#2C2C24] font-serif">No Field Registered Yet</h4>
+                  <p className="text-xs text-[#78786C]">Add your first farm parcel to view live soil NPK health</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('farms')}
+                className="px-4 py-2 rounded-full bg-[#5D7052] text-[#FEFEFA] text-xs font-bold shadow-soft hover:bg-[#4D5E44] transition shrink-0 cursor-pointer"
+              >
+                + Register Farm
+              </button>
             </div>
           )}
         </div>

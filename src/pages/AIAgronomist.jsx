@@ -15,17 +15,10 @@ import { useApp } from '../context/AppContext';
 
 export const AIAgronomist = () => {
   const { lang, t } = useLanguage();
-  const { selectedFarm } = useApp();
+  const { selectedFarm, chatMessages, setChatMessages } = useApp();
 
-  const [messages, setMessages] = useState([
-    {
-      id: 'welcome',
-      sender: 'bot',
-      text: "Namaste! I am Krishi Mitra, your AI Agronomist & ICAR knowledge assistant. How can I help you with crop health, fertilizer dosing, pest protection, or government schemes today?",
-      topic: "Agronomy Advisory",
-      citation: "ICAR Agricultural Knowledge Repository"
-    }
-  ]);
+  const messages = chatMessages;
+  const setMessages = setChatMessages;
   const [inputText, setInputText] = useState('');
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);

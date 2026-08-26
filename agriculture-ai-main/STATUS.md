@@ -188,7 +188,7 @@ agritech-ai/
 - PDF report generation
 
 **Medium Priority:**
-- WhatsApp bot (Twilio)
+- Real-time Push Notifications (FCM HTTP v1)
 - Regional crop database filtering
 - Admin panel
 - Improved translation coverage

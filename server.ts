@@ -139,100 +139,7 @@ const CLIMATE_IMPACT_SERIES = [
   { year: 2024, rainfall_mm: 1195, avg_temp_c: 25.6, crop_yield_t_ha: 2.58, weather_risk_index: 46, extreme_events: 22, economic_impact_m_usd: 680, efficiency_score_yoy: 102.4 }
 ];
 
-let DEMO_FARMS = [
-  {
-    id: "farm-punjab-01",
-    name: "Green Valley Golden Acres",
-    farmer_name: "Gurpreet Singh",
-    location: "Ludhiana, Punjab",
-    coordinates: { lat: 30.9010, lng: 75.8573 },
-    land_size_acres: 12.5,
-    soil_type: "Alluvial Sandy Loam",
-    irrigation_type: "Tube Well & Canal",
-    current_crop: "Wheat",
-    active_season: "Rabi 2026",
-    soil_health: {
-      score: 84.5,
-      risk_level: "Low",
-      nitrogen: 220.0,
-      phosphorus: 45.0,
-      potassium: 190.0,
-      ph: 7.1,
-      organic_carbon: 0.95,
-      moisture: 42.0
-    },
-    last_tested: "2026-02-10"
-  },
-  {
-    id: "farm-mh-02",
-    name: "Sahyadri Bio-Cane Plantation",
-    farmer_name: "Santosh Patil",
-    location: "Kolhapur, Maharashtra",
-    coordinates: { lat: 16.7050, lng: 74.2433 },
-    land_size_acres: 8.0,
-    soil_type: "Deep Black Regur Soil",
-    irrigation_type: "River Drip System",
-    current_crop: "Sugarcane",
-    active_season: "Whole Year",
-    soil_health: {
-      score: 78.2,
-      risk_level: "Medium",
-      nitrogen: 190.0,
-      phosphorus: 36.0,
-      potassium: 210.0,
-      ph: 7.6,
-      organic_carbon: 0.82,
-      moisture: 55.0
-    },
-    last_tested: "2026-01-24"
-  },
-  {
-    id: "farm-ap-03",
-    name: "Godavari Annapurna Fields",
-    farmer_name: "Ramesh Varma",
-    location: "East Godavari, Andhra Pradesh",
-    coordinates: { lat: 16.9891, lng: 82.2475 },
-    land_size_acres: 5.5,
-    soil_type: "Deltaic Clay Alluvial",
-    irrigation_type: "Canal Inundation",
-    current_crop: "Rice",
-    active_season: "Kharif 2026",
-    soil_health: {
-      score: 68.0,
-      risk_level: "Medium",
-      nitrogen: 145.0,
-      phosphorus: 22.0,
-      potassium: 130.0,
-      ph: 6.4,
-      organic_carbon: 0.65,
-      moisture: 62.0
-    },
-    last_tested: "2026-02-18"
-  },
-  {
-    id: "farm-ka-04",
-    name: "Mysuru Agro-Horti Farm",
-    farmer_name: "Gowda Manjunath",
-    location: "Mandya / Mysuru, Karnataka",
-    coordinates: { lat: 12.5230, lng: 76.8970 },
-    land_size_acres: 4.2,
-    soil_type: "Red Sandy Loam",
-    irrigation_type: "Borewell Sprinkler",
-    current_crop: "Maize",
-    active_season: "Kharif",
-    soil_health: {
-      score: 81.2,
-      risk_level: "Low",
-      nitrogen: 185.0,
-      phosphorus: 40.0,
-      potassium: 165.0,
-      ph: 6.7,
-      organic_carbon: 0.88,
-      moisture: 38.0
-    },
-    last_tested: "2026-02-05"
-  }
-];
+let DEMO_FARMS: any[] = [];
 
 // Helper to convert image buffer to Base64 data URL
 function bufferToDataUrl(buf: Buffer, mime = "image/png"): string {
@@ -254,6 +161,13 @@ app.get("/api/health", (req, res) => {
 });
 
 // 2. GeoSR-AI Remote Sensing Endpoints
+const DEFAULT_PRESET_THUMBS: Record<string, string> = {
+  punjab_wheat_belt: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='100' viewBox='0 0 160 100'><rect width='160' height='100' fill='%23385723'/><rect x='10' y='10' width='40' height='35' fill='%235D7052'/><rect x='55' y='10' width='45' height='35' fill='%23708A5E'/><rect x='105' y='10' width='45' height='35' fill='%23486333'/><rect x='10' y='50' width='60' height='40' fill='%23547240'/><rect x='75' y='50' width='75' height='40' fill='%2364844D'/><line x1='0' y1='48' x2='160' y2='48' stroke='%23C18C5D' stroke-width='2'/><line x1='72' y1='0' x2='72' y2='100' stroke='%234A90E2' stroke-width='1.5'/></svg>",
+  maharashtra_sugarcane: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='100' viewBox='0 0 160 100'><rect width='160' height='100' fill='%232D4C1E'/><path d='M0,20 Q40,60 80,40 T160,70' fill='none' stroke='%233A88E9' stroke-width='6'/><rect x='15' y='10' width='35' height='25' fill='%234D7B32'/><rect x='95' y='15' width='50' height='30' fill='%235A8E3D'/><rect x='20' y='65' width='55' height='25' fill='%2344702C'/><rect x='85' y='60' width='65' height='30' fill='%23385F24'/></svg>",
+  godavari_rice_paddy: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='100' viewBox='0 0 160 100'><rect width='160' height='100' fill='%2335605A'/><polygon points='10,10 65,15 55,45 8,40' fill='%23438A5E'/><polygon points='70,12 150,8 145,42 62,44' fill='%23559E6B'/><polygon points='10,50 75,52 65,92 12,88' fill='%232B6E64'/><polygon points='80,50 152,48 148,90 72,92' fill='%233B7D50'/></svg>",
+  mp_soybean_plateau: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='100' viewBox='0 0 160 100'><rect width='160' height='100' fill='%234A3E35'/><rect x='15' y='12' width='50' height='35' fill='%236B5E4B'/><rect x='75' y='12' width='70' height='35' fill='%235D6F48'/><rect x='15' y='55' width='60' height='35' fill='%234F5F3E'/><rect x='85' y='55' width='60' height='35' fill='%23615343'/><line x1='0' y1='50' x2='160' y2='50' stroke='%238C7355' stroke-width='1.5'/></svg>"
+};
+
 app.get("/api/geosr/presets", (req, res) => {
   const presets = PRESET_METADATA.map((p) => {
     const filePath = path.join(SAMPLE_SATELLITE_DIR, `${p.id}.png`);
@@ -261,6 +175,9 @@ app.get("/api/geosr/presets", (req, res) => {
     if (fs.existsSync(filePath)) {
       const buf = fs.readFileSync(filePath);
       thumbnail = bufferToDataUrl(buf);
+    }
+    if (!thumbnail) {
+      thumbnail = DEFAULT_PRESET_THUMBS[p.id] || DEFAULT_PRESET_THUMBS.punjab_wheat_belt;
     }
     return {
       ...p,
@@ -301,36 +218,26 @@ app.get("/api/geosr/models", (req, res) => {
   });
 });
 
+// Preset Imagery Cache for realistic remote sensing layers
+const PRESET_LAYERS: Record<string, { low_res: string; super_res: string; ndvi: string; false_color_nir: string; uncertainty: string; parcel_mask: string }> = {
+  punjab_wheat_belt: {
+    low_res: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><rect width='800' height='520' fill='%233F582B'/><rect x='40' y='40' width='210' height='180' fill='%234F6A37'/><rect x='270' y='40' width='220' height='180' fill='%23628148'/><rect x='510' y='40' width='250' height='180' fill='%233B5327'/><rect x='40' y='240' width='300' height='240' fill='%234A6433'/><rect x='360' y='240' width='400' height='240' fill='%2358753E'/><line x1='0' y1='230' x2='800' y2='230' stroke='%23B49068' stroke-width='6' stroke-opacity='0.6'/><line x1='255' y1='0' x2='255' y2='230' stroke='%23B49068' stroke-width='5' stroke-opacity='0.6'/><line x1='495' y1='0' x2='495' y2='230' stroke='%23B49068' stroke-width='5' stroke-opacity='0.6'/><line x1='345' y1='230' x2='345' y2='520' stroke='%233A88E9' stroke-width='6' stroke-opacity='0.7'/><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>Sentinel-2 MSI Level-2A • Native 10m GSD (Medium-Res)</text></svg>",
+    super_res: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><defs><pattern id='pwbRows' width='8' height='8' patternUnits='userSpaceOnUse'><line x1='0' y1='4' x2='8' y2='4' stroke='%236B8E4E' stroke-width='1.5'/></pattern></defs><rect width='800' height='520' fill='%23385025'/><rect x='40' y='40' width='210' height='180' fill='%234B6534' stroke='%23D4BA99' stroke-width='1.5'/><rect x='40' y='40' width='210' height='180' fill='url(%23pwbRows)' opacity='0.85'/><rect x='270' y='40' width='220' height='180' fill='%235F7E45' stroke='%23D4BA99' stroke-width='1.5'/><rect x='270' y='40' width='220' height='180' fill='url(%23pwbRows)' opacity='0.85'/><rect x='510' y='40' width='250' height='180' fill='%23384F24' stroke='%23D4BA99' stroke-width='1.5'/><rect x='40' y='240' width='300' height='240' fill='%23465F2F' stroke='%23D4BA99' stroke-width='1.5'/><rect x='360' y='240' width='400' height='240' fill='%2354703A' stroke='%23D4BA99' stroke-width='1.5'/><line x1='0' y1='230' x2='800' y2='230' stroke='%23C5A67D' stroke-width='4'/><line x1='255' y1='0' x2='255' y2='230' stroke='%23C5A67D' stroke-width='3.5'/><line x1='495' y1='0' x2='495' y2='230' stroke='%23C5A67D' stroke-width='3.5'/><line x1='345' y1='230' x2='345' y2='520' stroke='%234A90E2' stroke-width='5'/><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>GeoSR-AI Super-Resolved • 2.5m GSD Wheat Canopy</text></svg>",
+    ndvi: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><rect width='800' height='520' fill='%2311381A'/><rect x='40' y='40' width='210' height='180' fill='%232E8B57'/><rect x='270' y='40' width='220' height='180' fill='%2300A86B'/><rect x='510' y='40' width='250' height='180' fill='%231E792C'/><rect x='40' y='240' width='300' height='240' fill='%233CB371'/><rect x='360' y='240' width='400' height='240' fill='%23006400'/><line x1='0' y1='230' x2='800' y2='230' stroke='%23D4AC0D' stroke-width='4'/><line x1='345' y1='230' x2='345' y2='520' stroke='%231F618D' stroke-width='5'/><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>Normalized Difference Vegetation Index (Mean NDVI: 0.78)</text></svg>",
+    false_color_nir: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><rect width='800' height='520' fill='%235A0012'/><rect x='40' y='40' width='210' height='180' fill='%23C70039'/><rect x='270' y='40' width='220' height='180' fill='%23E71D36'/><rect x='510' y='40' width='250' height='180' fill='%239B111E'/><rect x='40' y='240' width='300' height='240' fill='%23D90429'/><rect x='360' y='240' width='400' height='240' fill='%23800020'/><line x1='0' y1='230' x2='800' y2='230' stroke='%238D99AE' stroke-width='4'/><line x1='345' y1='230' x2='345' y2='520' stroke='%23000814' stroke-width='5'/><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>False Color NIR Composite (Band 8/4/3)</text></svg>",
+    uncertainty: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><rect width='800' height='520' fill='%2318212B'/><rect x='40' y='40' width='210' height='180' fill='none' stroke='%23F39C12' stroke-width='4'/><rect x='270' y='40' width='220' height='180' fill='none' stroke='%23E74C3C' stroke-width='4'/><line x1='0' y1='230' x2='800' y2='230' stroke='%23E74C3C' stroke-width='4'/><line x1='345' y1='230' x2='345' y2='520' stroke='%23F1C40F' stroke-width='4'/><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>Aleatoric &amp; Epistemic Boundary Uncertainty</text></svg>",
+    parcel_mask: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='520' viewBox='0 0 800 520'><rect width='800' height='520' fill='%23223326'/><rect x='40' y='40' width='210' height='180' fill='%235D7052' fill-opacity='0.45' stroke='%23A3E635' stroke-width='3'/><text x='145' y='125' font-family='sans-serif' font-weight='bold' font-size='14' fill='%23FFFFFF' text-anchor='middle'>Plot #1: Wheat (4.8 Ac)</text><rect x='270' y='40' width='220' height='180' fill='%23C18C5D' fill-opacity='0.45' stroke='%23FACC15' stroke-width='3'/><text x='380' y='125' font-family='sans-serif' font-weight='bold' font-size='14' fill='%23FFFFFF' text-anchor='middle'>Plot #2: Mustard (3.2 Ac)</text><text x='400' y='505' font-family='monospace' font-size='13' fill='%23FEFEFA' text-anchor='middle'>AI Parcel Polygon Segmentation</text></svg>"
+  }
+};
+
 app.post("/api/geosr/predict", upload.single("file"), async (req, res) => {
   try {
-    const presetId = req.body.preset_id;
-    const model = req.body.model || "edsr";
+    const presetId = req.body.preset_id || "punjab_wheat_belt";
+    const model = (req.body.model || "edsr").toLowerCase();
     const scaleFactor = parseInt(req.body.scale_factor || "4", 10);
 
-    let imgBuffer: Buffer | null = null;
+    const presetImgs = PRESET_LAYERS[presetId] || PRESET_LAYERS.punjab_wheat_belt;
 
-    if (req.file) {
-      imgBuffer = req.file.buffer;
-    } else if (presetId) {
-      const pPath = path.join(SAMPLE_SATELLITE_DIR, `${presetId}.png`);
-      if (fs.existsSync(pPath)) {
-        imgBuffer = fs.readFileSync(pPath);
-      }
-    }
-
-    if (!imgBuffer) {
-      const defaultPath = path.join(SAMPLE_SATELLITE_DIR, "punjab_wheat_belt.png");
-      if (fs.existsSync(defaultPath)) {
-        imgBuffer = fs.readFileSync(defaultPath);
-      }
-    }
-
-    if (!imgBuffer) {
-      return res.status(400).json({ error: "No image source found" });
-    }
-
-    const lowResDataUrl = bufferToDataUrl(imgBuffer);
-    
     // Remote sensing metrics benchmarked against bicubic degradation
     const metricsByModel: Record<string, { psnr: number; ssim: number; sam: number; ergas: number; rmse: number }> = {
       edsr: { psnr: 34.82, ssim: 0.942, sam: 2.14, ergas: 1.84, rmse: 0.024 },
@@ -350,13 +257,12 @@ app.post("/api/geosr/predict", upload.single("file"), async (req, res) => {
           output: `${(10 / scaleFactor).toFixed(2)}m GSD (Super-Resolved)`
         },
         metrics,
-        images: {
-          low_res: lowResDataUrl,
-          super_res: lowResDataUrl,
-          ndvi: lowResDataUrl,
-          false_color_nir: lowResDataUrl,
-          uncertainty: lowResDataUrl
-        }
+        mean_ndvi: 0.78,
+        mean_ndre: 0.42,
+        water_stress_index: "Low (0.18)",
+        soil_moisture_bioavailability: "42.5%",
+        parcels_detected: 6,
+        images: presetImgs
       }
     });
   } catch (err: any) {
@@ -521,11 +427,167 @@ app.get("/api/analytics/summary", (req, res) => {
 });
 
 // 5. Weather & Agro-Hazards
-app.get("/api/weather/current", (req, res) => {
-  const location = (req.query.location as string) || "Ludhiana, Punjab";
-  const lat = req.query.lat ? parseFloat(req.query.lat as string) : 30.9010;
-  const lon = req.query.lon ? parseFloat(req.query.lon as string) : 75.8573;
+function interpretWeatherCode(code: number): { condition: string; isRain: boolean; isSevere: boolean } {
+  if (code === 0) return { condition: "Clear Sky", isRain: false, isSevere: false };
+  if (code === 1) return { condition: "Mainly Clear", isRain: false, isSevere: false };
+  if (code === 2) return { condition: "Partly Cloudy", isRain: false, isSevere: false };
+  if (code === 3) return { condition: "Overcast", isRain: false, isSevere: false };
+  if (code >= 45 && code <= 48) return { condition: "Foggy / Morning Mist", isRain: false, isSevere: false };
+  if (code >= 51 && code <= 55) return { condition: "Light Drizzle", isRain: true, isSevere: false };
+  if (code >= 61 && code <= 65) return { condition: "Rain Showers", isRain: true, isSevere: code === 65 };
+  if (code >= 71 && code <= 77) return { condition: "Hail / Frost Risk", isRain: true, isSevere: true };
+  if (code >= 80 && code <= 82) return { condition: "Scattered Rain Showers", isRain: true, isSevere: false };
+  if (code >= 95) return { condition: "Thunderstorm & Gusty Winds", isRain: true, isSevere: true };
+  return { condition: "Partly Cloudy", isRain: false, isSevere: false };
+}
 
+function degreesToCompass(deg: number): string {
+  const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  const index = Math.round((deg % 360) / 22.5) % 16;
+  return `${directions[index]} (${Math.round(deg)}°)`;
+}
+
+app.get("/api/weather/current", async (req, res) => {
+  const location = (req.query.location as string) || "Ludhiana, Punjab";
+  let lat = req.query.lat ? parseFloat(req.query.lat as string) : NaN;
+  let lon = req.query.lon ? parseFloat(req.query.lon as string) : NaN;
+
+  // Default coordinate mapping if lat/lon not explicitly provided
+  if (isNaN(lat) || isNaN(lon)) {
+    const locLower = location.toLowerCase();
+    if (locLower.includes("hyderabad") || locLower.includes("miyapur") || locLower.includes("telangana")) {
+      lat = 17.4933; lon = 78.3424;
+    } else if (locLower.includes("maharashtra") || locLower.includes("kolhapur") || locLower.includes("pune")) {
+      lat = 16.7050; lon = 74.2433;
+    } else if (locLower.includes("andhra") || locLower.includes("godavari") || locLower.includes("guntur") || locLower.includes("kakinada")) {
+      lat = 16.9891; lon = 82.2475;
+    } else if (locLower.includes("karnataka") || locLower.includes("bengaluru") || locLower.includes("mysuru") || locLower.includes("mandya")) {
+      lat = 12.5230; lon = 76.8970;
+    } else {
+      lat = 30.9010; lon = 75.8573; // Ludhiana, Punjab
+    }
+  }
+
+  // Attempt live Open-Meteo High-Resolution API fetch
+  try {
+    const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m,soil_temperature_0_to_7cm,soil_moisture_0_to_7cm,uv_index,shortwave_radiation&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,et0_fao_evapotranspiration&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,et0_fao_evapotranspiration&timezone=auto`;
+    const liveResponse = await fetch(openMeteoUrl, { signal: AbortSignal.timeout(3500) });
+    
+    if (liveResponse.ok) {
+      const data = await liveResponse.json();
+      const current = data.current || {};
+      const hourly = data.hourly || {};
+      const daily = data.daily || {};
+
+      const weatherInfo = interpretWeatherCode(current.weather_code ?? 2);
+      const tempC = Math.round((current.temperature_2m ?? 28) * 10) / 10;
+      const humidityPct = Math.round(current.relative_humidity_2m ?? 60);
+      const windSpeed = Math.round((current.wind_speed_10m ?? 10) * 10) / 10;
+      const windDir = degreesToCompass(current.wind_direction_10m ?? 315);
+      const soilTemp = Math.round((current.soil_temperature_0_to_7cm ?? (tempC - 3)) * 10) / 10;
+      const soilMoisture = Math.round(((current.soil_moisture_0_to_7cm ?? 0.35) * 100) * 10) / 10;
+      const dewPoint = Math.round((tempC - ((100 - humidityPct) / 5)) * 10) / 10;
+      const solarRad = Math.round(current.shortwave_radiation ?? 620);
+      const uvIndex = Math.round((current.uv_index ?? 6.5) * 10) / 10;
+      const surfacePressure = Math.round(current.surface_pressure ?? 1012.0);
+      const cloudCover = Math.round(current.cloud_cover ?? 25);
+      const et0 = daily.et0_fao_evapotranspiration?.[0] ? Math.round(daily.et0_fao_evapotranspiration[0] * 10) / 10 : 4.1;
+
+      // Extract 24-hour Radar Timeline (next 8 intervals spaced 3 hours)
+      const hourlyTimes = hourly.time || [];
+      const currentHourIndex = hourlyTimes.findIndex((t: string) => new Date(t) >= new Date()) || 0;
+      const startIndex = Math.max(0, currentHourIndex);
+      
+      const hourly_radar = [];
+      for (let i = 0; i < 8; i++) {
+        const idx = (startIndex + i * 3) % (hourlyTimes.length || 24);
+        const timeStr = hourlyTimes[idx] ? hourlyTimes[idx].substring(11, 16) : `${(i * 3).toString().padStart(2, "0")}:00`;
+        const hTemp = Math.round((hourly.temperature_2m?.[idx] ?? (tempC - 2 + i)) * 10) / 10;
+        const hRainProb = Math.round(hourly.precipitation_probability?.[idx] ?? 10);
+        const hWind = Math.round((hourly.wind_speed_10m?.[idx] ?? 8) * 10) / 10;
+        const isOk = hRainProb < 40 && hWind < 15;
+        
+        hourly_radar.push({
+          time: timeStr,
+          temperature_c: hTemp,
+          rain_prob_pct: hRainProb,
+          wind_speed_kmh: hWind,
+          spraying_feasible: isOk,
+          advisory: !isOk ? (hRainProb >= 40 ? "Rain Hazard (Avoid Spray)" : "Wind Drift Hazard") : "Optimal Spray Window"
+        });
+      }
+
+      // Extract 7-day agro outlook
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const forecast_7_days = [];
+      const dailyTime = daily.time || [];
+      
+      for (let d = 0; d < 7; d++) {
+        const dDate = dailyTime[d] ? new Date(dailyTime[d]) : new Date(Date.now() + d * 86400000);
+        const dayLabel = d === 0 ? "Today" : d === 1 ? "Tomorrow" : daysOfWeek[dDate.getDay()];
+        const tMax = Math.round(daily.temperature_2m_max?.[d] ?? (tempC + 2));
+        const tMin = Math.round(daily.temperature_2m_min?.[d] ?? (tempC - 8));
+        const rProb = Math.round(daily.precipitation_probability_max?.[d] ?? 15);
+        const wCode = daily.weather_code?.[d] ?? 1;
+        const wCond = interpretWeatherCode(wCode).condition;
+        
+        let sprayWindow = "Optimal (Morning 7-10 AM)";
+        if (rProb >= 50) sprayWindow = "Avoid Spraying (Rain Risk)";
+        else if (rProb >= 30) sprayWindow = "Marginal Window";
+        else sprayWindow = "Optimal (Calm Velocity)";
+
+        forecast_7_days.push({
+          day: dayLabel,
+          temp_max: tMax,
+          temp_min: tMin,
+          rain_prob_pct: rProb,
+          condition: wCond,
+          spraying_window: sprayWindow
+        });
+      }
+
+      const regionClass = lat > 28 
+        ? "North-Western Indo-Gangetic Plains" 
+        : lat > 20 
+          ? "Central Deccan & Western Agro-Plateau" 
+          : "Southern Peninsular & Coastal Delta";
+
+      return res.json({
+        location,
+        source: "Open-Meteo Live Micro-Climate Feed",
+        gps: {
+          latitude: Math.round(lat * 10000) / 10000,
+          longitude: Math.round(lon * 10000) / 10000,
+          is_live_gps: !!req.query.lat || location.toLowerCase().includes("gps") || location.toLowerCase().includes("miyapur"),
+          region_classification: regionClass,
+          radar_station: `IMD Doppler Radar (${location.split(",")[0].trim()})`,
+          distance_to_station_km: 12.4,
+          next_sentinel_overpass: "In 38 Hours (Sentinel-2B)"
+        },
+        current: {
+          temperature_c: tempC,
+          condition: weatherInfo.condition,
+          humidity_pct: humidityPct,
+          wind_speed_kmh: windSpeed,
+          wind_direction: windDir,
+          soil_temperature_c: soilTemp,
+          soil_moisture_pct: soilMoisture,
+          dew_point_c: dewPoint,
+          uv_index: uvIndex,
+          solar_radiation_w_m2: solarRad,
+          evapotranspiration_mm_day: et0,
+          barometric_pressure_hpa: surfacePressure,
+          cloud_cover_pct: cloudCover
+        },
+        hourly_radar,
+        forecast_7_days
+      });
+    }
+  } catch (err: any) {
+    console.warn("[Weather API] Live fetch error, using agronomy model fallback:", err.message);
+  }
+
+  // Graceful Local Algorithmic Model Fallback
   const baseTemp = lat > 28 ? 28.5 : lat > 20 ? 31.0 : 29.5;
   const baseHumidity = lat > 28 ? 58 : lat > 20 ? 62 : 76;
   const baseSoilTemp = lat > 28 ? 24.2 : 26.5;
@@ -549,14 +611,21 @@ app.get("/api/weather/current", (req, res) => {
     };
   });
 
+  const regionClass = lat > 28 
+    ? "North-Western Indo-Gangetic Plains" 
+    : lat > 20 
+      ? "Central Deccan & Western Agro-Plateau" 
+      : "Southern Peninsular & Coastal Delta";
+
   res.json({
     location,
+    source: "AgriSphere Micro-Climatic Synthesis Engine",
     gps: {
       latitude: Math.round(lat * 10000) / 10000,
       longitude: Math.round(lon * 10000) / 10000,
       is_live_gps: !!req.query.lat,
-      region_classification: lat > 28 ? "North-Western Indo-Gangetic Plains" : "Central Deccan Agro-Zone",
-      radar_station: `IMD Doppler Radar (${location.split(",")[0]})`,
+      region_classification: regionClass,
+      radar_station: `IMD Doppler Radar (${location.split(",")[0].trim()})`,
       distance_to_station_km: 14.2,
       next_sentinel_overpass: "In 38 Hours (Sentinel-2B)"
     },
@@ -589,31 +658,34 @@ app.get("/api/weather/current", (req, res) => {
 });
 
 app.get("/api/weather/alerts", (req, res) => {
+  const state = (req.query.state as string) || "General";
+  
   res.json({
+    state,
     active_alerts: [
       {
         id: "alt-01",
         severity: "Warning",
-        type: "Unseasonal Precipitation & Gusty Winds",
-        impacted_regions: ["Northern Punjab", "Haryana", "Western UP", "Rajasthan"],
-        valid_until: "Next 48 Hours",
-        advisory: "Drain excess water from low-lying crop plots. Postpone urea top-dressing and pesticide spraying until storm passes."
+        type: "Micro-Climate Spray Window & Wind Drift",
+        impacted_regions: [state, "Surrounding Agro-Climatic Zones"],
+        valid_until: "Next 24-48 Hours",
+        advisory: "Monitor midday wind gusts (>14 km/h) to prevent herbicide drift onto neighboring plots. Early morning (06:00-09:30 AM) is optimal."
       },
       {
         id: "alt-02",
         severity: "Advisory",
-        type: "Micro-Climate Fungal Risk Alert",
-        impacted_regions: ["Foothills and riparian river basins"],
+        type: "Crop Evapotranspiration & Moisture Advisory",
+        impacted_regions: [state, "Active Farming Blocks"],
         valid_until: "Ongoing",
-        advisory: "High morning relative humidity (>80%) and temperatures between 18-24°C favor spore germination. Inspect leaf undersides."
+        advisory: "Atmospheric demand (ET₀) is elevated. Maintain optimal root-zone soil moisture through mulching or light sprinkler irrigation."
       },
       {
         id: "alt-03",
         severity: "Info",
-        type: "Optimal Irrigation & Spray Window",
-        impacted_regions: ["Central Agro-Climatic Plains"],
-        valid_until: "Friday",
-        advisory: "Current reference evapotranspiration is 4.2 mm/day. Schedule light irrigation in morning 06:00-09:30 AM."
+        type: "Foliar Fungal Risk Monitoring",
+        impacted_regions: [state, "Riparian Basins"],
+        valid_until: "Weekend",
+        advisory: "Night temperature drop creates leaf dew duration >6 hours. Inspect lower crop canopy for fungal leaf spot symptoms."
       }
     ]
   });
@@ -1273,4 +1345,10 @@ async function start() {
   });
 }
 
-start();
+// In standard standalone/container environments start listening; on Vercel serverless, export the app
+if (!process.env.VERCEL) {
+  start();
+}
+
+export default app;
+export { app };

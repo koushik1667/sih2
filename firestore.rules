@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if requesting user owns the document/subcollection
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      // User private farms
+      match /farms/{farmId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User private soil assessments
+      match /soil_tests/{testId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User chat histories
+      match /chat_history/{chatId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User notification preferences & alerts
+      match /notifications/{notifId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User satellite super-resolution analyses
+      match /satellite_analyses/{analysisId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Public/community reference agricultural data if needed
+    match /public_advisories/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}
