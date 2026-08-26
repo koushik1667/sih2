@@ -1,12 +1,12 @@
 {
-  "projectId": "enhanced-highway-57854",
-  "appId": "1:38692602177:web:c6bc61a903db21018da1c0",
-  "apiKey": "AIzaSyCkNznIqx2KVFYSXg9RHqbMkxZjq8DIuBI",
-  "authDomain": "enhanced-highway-57854.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-sih2-71f6fb9d-c9f8-456d-af65-f5b947b2a960",
-  "storageBucket": "enhanced-highway-57854.firebasestorage.app",
-  "messagingSenderId": "38692602177",
-  "measurementId": "",
-  "oAuthClientId": "38692602177-tk187e6clclamgvcd873tvk91stihg0n.apps.googleusercontent.com",
+  "projectId": "farm-63936",
+  "appId": "1:927095124192:web:7110a4ad02d26d4c02e085",
+  "apiKey": "AIzaSyA-3Zi2qrX0fX8hcsgEygsoL_liXP4b6cY",
+  "authDomain": "farm-63936.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "farm-63936.firebasestorage.app",
+  "messagingSenderId": "927095124192",
+  "measurementId": "G-5ZP7VZRP0K",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
