@@ -1,0 +1,6 @@
+{
+  "name": "AgriSphere AI",
+  "description": "Unified Intelligent Agriculture Platform combining GeoSR-AI Satellite Super-Resolution Mapping, Precision Soil Health Forecasting, Power BI National Crop Analytics, and Multilingual AI Agronomist.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

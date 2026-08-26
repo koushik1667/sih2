@@ -42,36 +42,95 @@ async function sendSMS(phone, message) {
   }
 }
 
-// ── Push via Firebase Cloud Messaging ─────────────
+// ── Push via Firebase Cloud Messaging (HTTP v1 / Firebase Admin SDK) ──
+let adminInstance = null;
+function getFirebaseMessaging() {
+  if (adminInstance) return adminInstance.messaging();
+  try {
+    const admin = require('firebase-admin');
+    if (admin.apps.length > 0) {
+      adminInstance = admin.apps[0];
+      return adminInstance.messaging();
+    }
+
+    let credential = null;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      try {
+        const parsed = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        credential = admin.credential.cert(parsed);
+      } catch (e) {
+        if (require('fs').existsSync(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) {
+          credential = admin.credential.cert(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        }
+      }
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS && require('fs').existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
+      credential = admin.credential.cert(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      credential = admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      });
+    } else {
+      try {
+        credential = admin.credential.applicationDefault();
+      } catch (e) {
+        // Fallback gracefully without throwing
+      }
+    }
+
+    if (credential) {
+      adminInstance = admin.initializeApp({
+        credential,
+        projectId: process.env.FIREBASE_PROJECT_ID || undefined,
+      });
+      return adminInstance.messaging();
+    }
+  } catch (err) {
+    console.warn('[Push] Firebase Admin SDK initialization failed:', err.message);
+  }
+  return null;
+}
+
 async function sendPushNotification(fcmToken, { title, body, data = {} }) {
-  const serverKey = process.env.FCM_SERVER_KEY;
-  if (!serverKey || !fcmToken) {
-    console.info('[Push] Skipped (no FCM_SERVER_KEY or token)');
-    return { sent: false, reason: 'no_credentials' };
+  if (!fcmToken) {
+    console.info('[Push] Skipped (no fcmToken provided)');
+    return { sent: false, reason: 'no_token' };
+  }
+
+  const messaging = getFirebaseMessaging();
+  if (!messaging) {
+    console.info('[Push] Skipped (Firebase Admin SDK not configured, running in simulation mode)');
+    return {
+      sent: false,
+      reason: 'unconfigured_credentials',
+      simulated: true,
+      protocol: 'FCM HTTP v1 (Firebase Admin SDK)',
+      payload: { title, body, data }
+    };
   }
 
   try {
-    const { data: resp } = await axios.post(
-      'https://fcm.googleapis.com/fcm/send',
-      {
-        to: fcmToken,
-        notification: { title, body, sound: 'default' },
-        data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' },
+    const message = {
+      token: fcmToken,
+      notification: { title, body },
+      data: { ...data, timestamp: String(Date.now()), source: 'agrisphere_alerts' },
+      android: {
         priority: 'high',
+        notification: { sound: 'default', channelId: 'agrisphere_alerts' }
       },
-      {
-        headers: {
-          Authorization: `key=${serverKey}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 10_000,
+      webpush: {
+        headers: { Urgency: 'high' },
+        notification: { icon: '/favicon.svg', badge: '/favicon.svg' }
       }
-    );
-    console.info(`[Push] Sent: messageId=${resp.results?.[0]?.message_id}`);
-    return { sent: true, messageId: resp.results?.[0]?.message_id };
+    };
+
+    const messageId = await messaging.send(message);
+    console.info(`[Push] Sent via FCM HTTP v1: messageId=${messageId}`);
+    return { sent: true, messageId, protocol: 'FCM HTTP v1' };
   } catch (err) {
-    console.error('[Push] Failed:', err.message);
-    return { sent: false, reason: err.message };
+    console.error('[Push] FCM HTTP v1 send failed:', err.message);
+    return { sent: false, reason: err.message, protocol: 'FCM HTTP v1' };
   }
 }
 

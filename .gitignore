@@ -28,6 +28,13 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+*serviceAccountKey*.json
+*service-account*.json
+*firebase-admin*.json
+*firebase-key*.json
+firebase-credentials.json
+*.pem
+*.key
 
 # Logs
 logs
