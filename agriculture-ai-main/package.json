@@ -1,0 +1,16 @@
+{
+  "name": "agritech-ai",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "start-backend": "cd backend && npm start",
+    "start-frontend": "cd frontend && npm run dev",
+    "start-ml": "cd ml-service && python app.py",
+    "seed": "cd backend && node seedCrops.js"
+  }
+}

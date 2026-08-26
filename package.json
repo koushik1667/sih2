@@ -1,0 +1,10 @@
+{
+  "name": "sih2-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix agrisphere-unified/frontend run dev",
+    "build": "npm --prefix agrisphere-unified/frontend run build",
+    "start:backend": "python -m uvicorn agrisphere-unified.backend.main:app --host 0.0.0.0 --port 8000 --reload"
+  }
+}
