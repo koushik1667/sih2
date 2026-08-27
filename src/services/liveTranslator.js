@@ -198,6 +198,15 @@ export function translateSubtree(rootNode, targetLang) {
   if (!rootNode) return;
 
   requestAnimationFrame(() => {
+    // If switching to English, unwrap Google translate font tags first
+    if (targetLang === 'en') {
+      rootNode.querySelectorAll?.('font').forEach(font => {
+        if (font.parentNode) {
+          font.parentNode.replaceChild(document.createTextNode(font.textContent || ''), font);
+        }
+      });
+    }
+
     const walker = document.createTreeWalker(
       rootNode,
       NodeFilter.SHOW_TEXT,

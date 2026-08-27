@@ -885,15 +885,60 @@ export const LanguageProvider = ({ children }) => {
 
   const applyGoogleTranslate = (targetLang) => {
     try {
-      const cookieVal = targetLang === 'en' ? '' : `/en/${targetLang}`;
-      document.cookie = `googtrans=${cookieVal}; path=/;`;
-      document.cookie = `googtrans=${cookieVal}; domain=.${window.location.hostname}; path=/;`;
-      document.cookie = `googtrans=${cookieVal}; domain=${window.location.hostname}; path=/;`;
+      if (targetLang === 'en') {
+        // Clear all googtrans cookies across all domains
+        const domains = [
+          '',
+          `.${window.location.hostname}`,
+          window.location.hostname,
+          'localhost'
+        ];
+        domains.forEach(d => {
+          const domainStr = d ? `domain=${d}; ` : '';
+          document.cookie = `googtrans=; ${domainStr}path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+          document.cookie = `googtrans=/en/en; ${domainStr}path=/;`;
+        });
 
-      const select = document.querySelector('.goog-te-combo');
-      if (select) {
-        select.value = targetLang;
-        select.dispatchEvent(new Event('change'));
+        // Trigger Google Translate Reset
+        const select = document.querySelector('.goog-te-combo');
+        if (select) {
+          select.value = '';
+          select.dispatchEvent(new Event('change'));
+        }
+
+        // Trigger Show Original button if iframe exists
+        try {
+          const iframe = document.querySelector('iframe.goog-te-banner-frame');
+          if (iframe && iframe.contentDocument) {
+            const btn = iframe.contentDocument.querySelector('.goog-te-button button, #\\:1\\.restore');
+            if (btn) btn.click();
+          }
+        } catch (_) {}
+
+        // Remove translated HTML classes
+        if (document.documentElement) {
+          document.documentElement.classList.remove('translated-ltr', 'translated-rtl');
+        }
+
+        // Remove injected Google Translate font wrappers if present
+        document.querySelectorAll('font').forEach(font => {
+          if (font.parentNode) {
+            font.parentNode.replaceChild(document.createTextNode(font.textContent || ''), font);
+          }
+        });
+      } else {
+        const cookieVal = `/en/${targetLang}`;
+        document.cookie = `googtrans=${cookieVal}; path=/;`;
+        if (window.location.hostname) {
+          document.cookie = `googtrans=${cookieVal}; domain=.${window.location.hostname}; path=/;`;
+          document.cookie = `googtrans=${cookieVal}; domain=${window.location.hostname}; path=/;`;
+        }
+
+        const select = document.querySelector('.goog-te-combo');
+        if (select) {
+          select.value = targetLang;
+          select.dispatchEvent(new Event('change'));
+        }
       }
     } catch (e) {
       // silent
