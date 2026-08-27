@@ -877,11 +877,37 @@ export const SUPPORTED_LANGUAGES = [
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [lang, setLangState] = useState('en');
+  const [lang, setLangState] = useState(() => {
+    const saved = localStorage.getItem('agri_lang');
+    return saved || 'en';
+  });
   const [isLiveActive, setIsLiveActive] = useState(true);
+
+  const applyGoogleTranslate = (targetLang) => {
+    try {
+      const cookieVal = targetLang === 'en' ? '' : `/en/${targetLang}`;
+      document.cookie = `googtrans=${cookieVal}; path=/;`;
+      document.cookie = `googtrans=${cookieVal}; domain=.${window.location.hostname}; path=/;`;
+      document.cookie = `googtrans=${cookieVal}; domain=${window.location.hostname}; path=/;`;
+
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = targetLang;
+        select.dispatchEvent(new Event('change'));
+      }
+    } catch (e) {
+      // silent
+    }
+  };
 
   const setLang = (newLang) => {
     setLangState(newLang);
+    localStorage.setItem('agri_lang', newLang);
+
+    // 1. Apply Universal Full-Page Neural Translation
+    applyGoogleTranslate(newLang);
+
+    // 2. Run instant DOM & token translation engine
     if (isLiveActive) {
       if (newLang === 'en') {
         liveTranslatorEngine.stop();
@@ -891,8 +917,9 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
-  // Start / Update DOM Observer on active language change
+  // Sync translation engine on mount & lang change
   React.useEffect(() => {
+    applyGoogleTranslate(lang);
     if (isLiveActive && lang !== 'en') {
       liveTranslatorEngine.start(lang);
     } else {

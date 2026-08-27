@@ -183,3 +183,36 @@ h1, h2, h3, .font-serif-heading {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Clean Google Translate Overrides (Zero Layout Shift & Invisible Tooltips) */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover,
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.skiptranslate:not(.allowed-translate) {
+  font-family: inherit;
+}
