@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   Compass,
   Menu,
-  X
+  X,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -57,50 +59,86 @@ export const Navigation = () => {
   }, [isNotifOpen]);
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: Globe },
-    { id: 'command_center', label: t('nav_command_center'), icon: LayoutDashboard },
-    { id: 'land_scanner', label: 'Land Measure & Scan', icon: Compass, badge: 'Live GIS' },
-    { id: 'satellite_srm', label: t('nav_satellite_srm'), icon: Satellite, badge: 'GeoSR' },
-    { id: 'soil_precision', label: t('nav_soil_precision'), icon: Sprout },
-    { id: 'national_analytics', label: t('nav_national_analytics'), icon: BarChart3, badge: 'Power BI' },
-    { id: 'ai_agronomist', label: t('nav_ai_agronomist'), icon: Bot },
-    { id: 'farms', label: t('nav_farms'), icon: MapPin },
-    { id: 'weather', label: t('nav_weather'), icon: CloudSun },
-    { id: 'login', label: isAuthenticated ? 'Farmer Account' : 'Login Dashboard', icon: User, badge: isAuthenticated ? 'Cloud' : undefined }
+    { id: 'home', label: 'Home', icon: Globe, desc: 'Overview & Global Portal' },
+    { id: 'command_center', label: t('nav_command_center') || 'Command Center', icon: LayoutDashboard, desc: 'Agri Command & Macro Analytics' },
+    { id: 'land_scanner', label: 'Land Measure & Scan', icon: Compass, badge: 'Live GIS', desc: 'Geodesic Acreage & Spectral Scanner' },
+    { id: 'satellite_srm', label: t('nav_satellite_srm') || 'GeoSR-AI Studio', icon: Satellite, badge: 'GeoSR', desc: 'Sentinel & Landsat Super-Resolution' },
+    { id: 'soil_precision', label: t('nav_soil_precision') || 'Soil & Depletion', icon: Sprout, desc: 'NPK Drawdown & Crop Rotation' },
+    { id: 'national_analytics', label: t('nav_national_analytics') || 'National Analytics', icon: BarChart3, badge: 'Power BI', desc: 'National Crop Matrix & Economics' },
+    { id: 'ai_agronomist', label: t('nav_ai_agronomist') || 'AI Agronomist', icon: Bot, desc: 'Krishi Mitra Multilingual Advisory' },
+    { id: 'farms', label: t('nav_farms') || 'My Farms', icon: MapPin, desc: 'Cloud Farm Parcels & Registry' },
+    { id: 'weather', label: t('nav_weather') || 'Weather Radar', icon: CloudSun, badge: 'Live Doppler', desc: 'Live Radar & Spray Windows' },
+    { id: 'login', label: isAuthenticated ? 'Farmer Account' : 'Login Dashboard', icon: User, badge: isAuthenticated ? 'Cloud' : undefined, desc: 'Database Sync & Credentials' }
   ];
+
+  const currentLangObj = supportedLanguages.find(l => l.code === lang) || supportedLanguages[0];
 
   return (
     <>
       <header className="sticky top-2 sm:top-3 z-40 max-w-7xl mx-auto w-full px-2 sm:px-6 lg:px-8">
         <div className="bg-[#FEFEFA]/95 backdrop-blur-md border border-[#DED8CF]/80 shadow-soft rounded-[1.75rem] sm:rounded-[2.25rem] p-2 sm:p-3 transition-all duration-300">
           
-          {/* Top Tier: Logo + Platform Identity + Global Switches */}
+          {/* Top Tier: Top-Left Hamburger & Language + Logo + Right Controls */}
           <div className="flex items-center justify-between gap-2 px-1 sm:px-3 pb-2 sm:pb-2.5 border-b border-[#DED8CF]/40">
             
-            {/* Logo & Platform Name */}
-            <div 
-              className="flex items-center gap-2 sm:gap-3 cursor-pointer group" 
-              onClick={() => setActiveTab('command_center')}
-            >
-              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#5D7052] text-[#F3F4F1] shadow-soft group-hover:scale-105 group-hover:bg-[#4D5E44] transition-all shrink-0">
-                <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            {/* Left Controls on Mobile: Hamburger Button + Top-Left Minimized Language Selector */}
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              {/* Mobile Hamburger Menu Button (Top Left Corner) */}
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden flex items-center justify-center w-9 h-9 rounded-full bg-[#5D7052] text-[#FEFEFA] shadow-soft hover:bg-[#4D5E44] active:scale-95 transition-all shrink-0 cursor-pointer"
+                aria-label="Toggle Navigation Menu"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+
+              {/* Minimized Language Selector (Top Left) */}
+              <div className="relative flex items-center rounded-full bg-[#F0EBE5]/90 border border-[#DED8CF] px-2 py-1 hover:bg-[#F0EBE5] transition shadow-xs">
+                <Globe className="w-3.5 h-3.5 text-[#5D7052] mr-1 shrink-0" />
+                <span className="text-[11px] sm:text-xs text-[#2C2C24] font-bold">
+                  {currentLangObj.native}
+                </span>
+                <ChevronDown className="w-3 h-3 text-[#78786C] ml-1" />
+                <select
+                  value={lang}
+                  onChange={(e) => setLang(e.target.value)}
+                  aria-label="Select Language"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                >
+                  {supportedLanguages.map((l) => (
+                    <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24]">
+                      {l.code.toUpperCase()} — {l.native} ({l.name})
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <span className="text-base sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none">
-                    AgriSphere <span className="text-[#5D7052] italic font-normal">AI</span>
-                  </span>
-                  <span className="px-1.5 sm:px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full bg-[#5D7052]/10 text-[#5D7052] border border-[#5D7052]/20">
-                    v2.0
-                  </span>
+
+              {/* Logo & Platform Name */}
+              <div 
+                className="flex items-center gap-2 sm:gap-3 cursor-pointer group" 
+                onClick={() => setActiveTab('command_center')}
+              >
+                <div className="hidden sm:flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#5D7052] text-[#F3F4F1] shadow-soft group-hover:scale-105 group-hover:bg-[#4D5E44] transition-all shrink-0">
+                  <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-[#78786C] hidden sm:block">
-                  {t('tagline')}
-                </p>
+                <div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <span className="text-sm sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none">
+                      AgriSphere <span className="text-[#5D7052] italic font-normal">AI</span>
+                    </span>
+                    <span className="px-1.5 py-0.2 text-[8px] sm:text-[10px] font-bold uppercase rounded-full bg-[#5D7052]/10 text-[#5D7052] border border-[#5D7052]/20">
+                      v2.0
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-[#78786C] hidden lg:block">
+                    {t('tagline')}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Right Controls: Farm Selector, Language, Account Pill, Notification Bell, Mobile Menu */}
+            {/* Right Controls: Farm Selector, GPS, Notification Bell, Account */}
             <div className="flex items-center gap-1.5 sm:gap-2.5">
               
               {/* Live GPS Tracker Pill */}
@@ -111,8 +149,8 @@ export const Navigation = () => {
                 title="Open Live Field GPS Tracker"
               >
                 <NavigationIcon className={`w-3.5 h-3.5 ${isTracking ? 'text-[#5D7052] animate-spin-slow' : 'text-[#C18C5D]'}`} />
-                <span className="truncate max-w-[90px] sm:max-w-[120px] hidden md:inline">
-                  {locationState?.geoInfo?.town || 'GPS Location'}
+                <span className="truncate max-w-[85px] sm:max-w-[120px] hidden sm:inline">
+                  {locationState?.geoInfo?.town || 'Live GPS'}
                 </span>
                 <span className={`w-2 h-2 rounded-full ${isTracking ? 'bg-[#5D7052] animate-ping' : 'bg-[#C18C5D]'}`} />
               </button>
@@ -144,23 +182,6 @@ export const Navigation = () => {
                   </div>
                 </div>
               )}
-
-              {/* Language Switcher */}
-              <div className="flex items-center rounded-full bg-[#F0EBE5]/60 border border-[#DED8CF] px-1.5 sm:px-2 py-0.5 hover:bg-[#F0EBE5] transition">
-                <Globe className="w-3.5 h-3.5 text-[#5D7052] mr-1" />
-                <select
-                  value={lang}
-                  onChange={(e) => setLang(e.target.value)}
-                  aria-label="Select Language"
-                  className="bg-transparent text-[11px] sm:text-xs text-[#2C2C24] font-semibold py-1 outline-none cursor-pointer"
-                >
-                  {supportedLanguages.map((l) => (
-                    <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24]">
-                      {l.code.toUpperCase()} ({l.native})
-                    </option>
-                  ))}
-                </select>
-              </div>
 
               {/* Auth / Account Profile Button */}
               {isAuthenticated ? (
@@ -208,21 +229,11 @@ export const Navigation = () => {
                   </span>
                 )}
               </button>
-
-              {/* Mobile Drawer Button (< md) */}
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden flex items-center justify-center w-7 h-7 rounded-full bg-[#F0EBE5]/80 text-[#2C2C24] border border-[#DED8CF] hover:bg-[#E6DCCD]"
-                aria-label="Toggle Navigation Menu"
-              >
-                {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              </button>
             </div>
           </div>
 
-          {/* Bottom Tier: Touch-Scrollable Navigation Tabs (Desktop & Tablet) */}
-          <nav className="flex space-x-1.5 overflow-x-auto pt-2 pb-0.5 scrollbar-none touch-pan-x">
+          {/* Bottom Tier: Desktop & Tablet Horizontal Navigation Tabs (Hidden on Mobile) */}
+          <nav className="hidden md:flex space-x-1.5 overflow-x-auto pt-2 pb-0.5 scrollbar-none touch-pan-x">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -253,31 +264,123 @@ export const Navigation = () => {
             })}
           </nav>
 
-          {/* Mobile Collapsible Full Menu Drawer */}
+          {/* Mobile Off-Canvas Hamburger Menu Drawer (Triggered by Top-Left Menu Button) */}
           {isMobileMenuOpen && (
-            <div className="md:hidden pt-3 border-t border-[#DED8CF]/60 grid grid-cols-2 gap-2 animate-fadeIn">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`flex items-center gap-2 p-2.5 rounded-2xl text-xs font-bold transition text-left ${
-                      isActive
-                        ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft'
-                        : 'bg-[#F0EBE5]/50 text-[#2C2C24] hover:bg-[#E6DCCD]'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                );
-              })}
+            <div className="md:hidden pt-3 border-t border-[#DED8CF]/60 animate-in fade-in slide-in-from-top-3 duration-200">
+              
+              {/* Header inside mobile drawer */}
+              <div className="flex items-center justify-between px-1 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#5D7052] animate-ping" />
+                  <span className="text-xs font-extrabold text-[#2C2C24] uppercase tracking-wider">
+                    All Application Pages & Services
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-xs font-bold text-[#78786C] hover:text-[#2C2C24] px-2 py-1 rounded-full bg-[#F0EBE5]"
+                >
+                  Close ✕
+                </button>
+              </div>
+
+              {/* Language Selector in Drawer */}
+              <div className="mb-3 p-2.5 rounded-2xl bg-[#F0EBE5]/70 border border-[#DED8CF]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-[#78786C] uppercase tracking-wider flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#5D7052]" />
+                    Select Language ({supportedLanguages.length} Languages)
+                  </span>
+                  <span className="text-[10px] font-extrabold text-[#5D7052]">
+                    Active: {currentLangObj.native}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                  {supportedLanguages.map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => setLang(l.code)}
+                      className={`px-2 py-1.5 rounded-xl text-[11px] font-bold transition text-center truncate ${
+                        lang === l.code
+                          ? 'bg-[#5D7052] text-white shadow-xs'
+                          : 'bg-[#FEFEFA] text-[#2C2C24] border border-[#DED8CF]/60 hover:bg-[#E6DCCD]'
+                      }`}
+                    >
+                      {l.native}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grid of All 10 Application Pages */}
+              <div className="grid grid-cols-1 gap-1.5 max-h-[60vh] overflow-y-auto pr-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition text-left cursor-pointer ${
+                        isActive
+                          ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft'
+                          : 'bg-[#F0EBE5]/50 text-[#2C2C24] hover:bg-[#E6DCCD] border border-[#DED8CF]/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-xl shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-[#5D7052]/10 text-[#5D7052]'}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold">{item.label}</span>
+                            {item.badge && (
+                              <span className={`px-1.5 py-0.2 text-[8px] font-extrabold rounded-full ${
+                                isActive ? 'bg-white/30 text-white' : 'bg-[#C18C5D]/20 text-[#C18C5D]'
+                              }`}>
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-[10px] font-normal ${isActive ? 'text-[#FEFEFA]/80' : 'text-[#78786C]'}`}>
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#78786C]'}`} />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Farm Selector & Live GPS Quick Action inside mobile menu */}
+              {farms.length > 0 && (
+                <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex items-center justify-between text-xs">
+                  <span className="text-[#78786C] font-semibold">Active Farm Parcel:</span>
+                  <div className="relative">
+                    <span className="font-bold text-[#5D7052] underline cursor-pointer">
+                      {selectedFarm ? selectedFarm.name : 'Select Farm'} ▾
+                    </span>
+                    <select
+                      value={selectedFarm?.id || ''}
+                      onChange={(e) => {
+                        const f = farms.find(farm => farm.id === e.target.value);
+                        if (f) setSelectedFarm(f);
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                    >
+                      {farms.map(f => (
+                        <option key={f.id} value={f.id}>{f.name} ({f.location})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -302,37 +405,6 @@ export const Navigation = () => {
           onClose={() => setIsProfileOpen(false)}
         />
       </header>
-
-      {/* Floating Bottom Navigation Bar for Mobile (< sm screens) */}
-      <div className="sm:hidden fixed bottom-3 inset-x-3 z-40 bg-[#FEFEFA]/95 backdrop-blur-md border border-[#DED8CF] shadow-lg rounded-full px-3 py-2 flex items-center justify-between">
-        {[
-          { id: 'command_center', label: 'Command', icon: LayoutDashboard },
-          { id: 'land_scanner', label: 'Measure', icon: Compass },
-          { id: 'satellite_srm', label: 'GeoSR', icon: Satellite },
-          { id: 'soil_precision', label: 'Soil', icon: Sprout },
-          { id: 'ai_agronomist', label: 'Krishi AI', icon: Bot },
-          { id: 'weather', label: 'Radar', icon: CloudSun }
-        ].map((btn) => {
-          const Icon = btn.icon;
-          const isActive = activeTab === btn.id;
-          return (
-            <button
-              key={btn.id}
-              type="button"
-              onClick={() => setActiveTab(btn.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-full transition ${
-                isActive ? 'text-[#5D7052] font-bold scale-105' : 'text-[#78786C]'
-              }`}
-            >
-              <div className={`p-1 rounded-full ${isActive ? 'bg-[#5D7052]/15 text-[#5D7052]' : ''}`}>
-                <Icon className="w-4 h-4" />
-              </div>
-              <span className="text-[9px] mt-0.5">{btn.label}</span>
-            </button>
-          );
-        })}
-      </div>
     </>
   );
 };
-

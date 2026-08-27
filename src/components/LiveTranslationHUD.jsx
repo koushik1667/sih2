@@ -25,7 +25,7 @@ export const LiveTranslationHUD = () => {
   const currentLangObj = supportedLanguages.find(l => l.code === lang) || supportedLanguages[0];
 
   return (
-    <aside aria-label="Live translation controls" className="fixed bottom-5 left-5 z-50 flex flex-col items-start font-sans">
+    <aside aria-label="Live translation controls" className="hidden md:flex fixed bottom-5 left-5 z-50 flex-col items-start font-sans">
       {/* Expanded Panel */}
       {isExpanded && (
         <div className="mb-2.5 p-5 rounded-[2rem] bg-[#FEFEFA]/95 backdrop-blur-xl border border-[#DED8CF] shadow-float text-[#2C2C24] w-80 sm:w-96 animate-in fade-in slide-in-from-bottom-4 duration-200">
