@@ -321,6 +321,63 @@ const DEFAULT_FALLBACKS = {
       { day: "Day 7", temp_max: 32, temp_min: 22, rain_prob_pct: 10, condition: "Clear", spraying_window: "Optimal" }
     ]
   },
+  '/api/weather/news': {
+    status: "success",
+    region: "Regional Agricultural & Weather Zone",
+    location: "Live Regional Agro Field",
+    last_updated: new Date().toISOString(),
+    total_articles: 4,
+    articles: [
+      {
+        id: "news-fb-01",
+        title: "🌦️ IMD Regional Agro-Met Radar Bulletin: Optimal Monsoon Moisture Sowing Window",
+        summary: "Doppler radar stations detect stable atmospheric moisture with daytime temperatures around 28°C. Soil moisture levels are primed for fertilizer top-dressing and Kharif cereal intercultural operations.",
+        category: "weather",
+        severity: "advisory",
+        source: "IMD Agro-Meteorology Directorate",
+        publishedAt: "25 mins ago",
+        impact: "High Impact",
+        tags: ["Monsoon", "Radar", "Soil Moisture"],
+        actionableAdvice: "Optimize spray operations during morning 06:30-09:30 AM calm wind window."
+      },
+      {
+        id: "news-fb-02",
+        title: "🌾 Crop Health & Vegetative Vigor Index Scored at Strong 88% Level",
+        summary: "State Agriculture Department reports brisk agricultural field operations with healthy vegetative tiller count. Canals and borewells maintain steady irrigation head discharge.",
+        category: "crops",
+        severity: "info",
+        source: "State Agricultural Research Hub",
+        publishedAt: "1.5 hours ago",
+        impact: "Crop Health",
+        tags: ["Vegetative Index", "Paddy & Cotton", "Canal Water"],
+        actionableAdvice: "Scout lower leaf surfaces for sucking pests and apply bio-control formulations early."
+      },
+      {
+        id: "news-fb-03",
+        title: "📈 APMC Regional Mandi Arrivals: Cereal & Commercial Crops Trade Above MSP",
+        summary: "Regional agricultural market committees report smooth electronic weighment and transparent bidding. Grain arrivals meet strong mill demand with rapid DBT bank account settlements.",
+        category: "mandi",
+        severity: "market",
+        source: "State Ag Marketing Board & Agmarknet",
+        publishedAt: "3 hours ago",
+        impact: "Market Update",
+        tags: ["Mandi Rates", "MSP Procurement", "e-NAM"],
+        actionableAdvice: "Ensure grain moisture is below 12% before mandi dispatch to avoid grade deductions."
+      },
+      {
+        id: "news-fb-04",
+        title: "🚜 PM-Kisan & Micro-Irrigation Drip Incentive Verifications Fast-Tracked",
+        summary: "Government releases targeted capital subsidies for precision drip irrigation, solar agricultural pumps, and localized soil health test testing kits across all farming blocks.",
+        category: "schemes",
+        severity: "info",
+        source: "National Krishi Seva Portal",
+        publishedAt: "5 hours ago",
+        impact: "Govt Subsidy",
+        tags: ["Solar Pump", "Drip Kit", "PM-Kisan"],
+        actionableAdvice: "Check your local Krishi Bhavan to verify Aadhaar e-KYC status for scheme eligibility."
+      }
+    ]
+  },
   '/api/weather/alerts': {
     active_alerts: [
       {
@@ -551,6 +608,12 @@ export const api = {
     return request(`/api/weather/current?${params.toString()}`);
   },
   getWeatherAlerts: (state) => request(`/api/weather/alerts?state=${encodeURIComponent(state || 'Punjab')}`),
+  getAgriNews: (state, location) => {
+    const params = new URLSearchParams();
+    if (state) params.append('state', state);
+    if (location) params.append('location', location);
+    return request(`/api/weather/news?${params.toString()}`);
+  },
 
   // Argos Machine Translation
   translate: (text, from_lang = 'en', to_lang = 'hi') => request('/api/translate', {
