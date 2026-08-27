@@ -65,16 +65,17 @@ export const VisitorHeader = ({ activeTab, onSelectTab, onQuickDemo }) => {
           <div className="flex items-center gap-1.5 sm:gap-2">
             
             {/* Language Switcher */}
-            <div className="flex items-center rounded-full bg-[#F0EBE5]/60 border border-[#DED8CF] px-1.5 sm:px-2 py-0.5 hover:bg-[#F0EBE5] transition">
+            <div className="flex items-center rounded-full bg-[#F0EBE5]/60 border border-[#DED8CF] px-1.5 sm:px-2 py-0.5 hover:bg-[#F0EBE5] transition notranslate" translate="no">
               <Globe className="w-3.5 h-3.5 text-[#5D7052] mr-1" />
               <select
                 value={lang}
                 onChange={(e) => setLang(e.target.value)}
                 aria-label="Select Language"
-                className="bg-transparent text-[11px] sm:text-xs text-[#2C2C24] font-semibold py-1 outline-none cursor-pointer"
+                className="bg-transparent text-[11px] sm:text-xs text-[#2C2C24] font-semibold py-1 outline-none cursor-pointer notranslate"
+                translate="no"
               >
                 {supportedLanguages.map((l) => (
-                  <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24]">
+                  <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24] notranslate">
                     {l.code.toUpperCase()} ({l.native})
                   </option>
                 ))}

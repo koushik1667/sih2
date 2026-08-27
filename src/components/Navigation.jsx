@@ -129,9 +129,12 @@ export const Navigation = () => {
               </button>
 
               {/* Minimized Language Selector (Top Left) */}
-              <div className="relative flex items-center rounded-full bg-[#F0EBE5]/90 border border-[#DED8CF] px-2.5 py-1 hover:bg-[#F0EBE5] transition shadow-xs cursor-pointer">
+              <div 
+                className="relative flex items-center rounded-full bg-[#F0EBE5]/90 border border-[#DED8CF] px-2.5 py-1 hover:bg-[#F0EBE5] transition shadow-xs cursor-pointer notranslate"
+                translate="no"
+              >
                 <Globe className="w-3.5 h-3.5 text-[#5D7052] mr-1 shrink-0" />
-                <span className="text-[11px] sm:text-xs text-[#2C2C24] font-bold">
+                <span className="text-[11px] sm:text-xs text-[#2C2C24] font-bold notranslate" translate="no">
                   {currentLangObj.native}
                 </span>
                 <ChevronDown className="w-3 h-3 text-[#78786C] ml-1" />
@@ -139,10 +142,11 @@ export const Navigation = () => {
                   value={lang}
                   onChange={(e) => setLang(e.target.value)}
                   aria-label="Select Language"
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full notranslate"
+                  translate="no"
                 >
                   {supportedLanguages.map((l) => (
-                    <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24]">
+                    <option key={l.code} value={l.code} className="bg-[#FEFEFA] text-[#2C2C24] notranslate">
                       {l.code.toUpperCase()} — {l.native} ({l.name})
                     </option>
                   ))}

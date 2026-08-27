@@ -244,14 +244,17 @@ function shouldSkipNode(node) {
   if (!parent) return true;
 
   const tag = parent.tagName;
-  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME'].includes(tag)) {
+  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME', 'CANVAS', 'INPUT', 'TEXTAREA'].includes(tag)) {
     return true;
   }
 
   if (
     parent.classList.contains('notranslate') ||
     parent.getAttribute('translate') === 'no' ||
-    parent.hasAttribute('data-no-translate')
+    parent.hasAttribute('data-no-translate') ||
+    parent.closest?.('.notranslate') ||
+    parent.closest?.('[translate="no"]') ||
+    parent.closest?.('[data-no-translate]')
   ) {
     return true;
   }
