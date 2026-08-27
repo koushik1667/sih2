@@ -1,36 +1,36 @@
 /**
  * AgriSphere Universal Real-Time Live DOM & Content Translation Engine
  * Translates EVERY SINGLE WORD and sentence across the entire application live,
- * matching Amazon/Google Translate with instant local cache + live neural fallback.
+ * matching Amazon/Google Translate with bidirectional reverse safety.
  */
 
-// Comprehensive Client Dictionary for 0ms Instant Local Rendering (Telugu, Hindi, Kannada, Tamil, Marathi, Bengali, Gujarati, Punjabi, Malayalam, Odia)
+// Comprehensive Client Dictionary for 0ms Instant Local Rendering
 export const CLIENT_TRANSLATION_MAP = {
   // Navigation & Core Modules
   "Command Center": { hi: "कमांड सेंटर", kn: "ಕಮಾಂಡ್ ಸೆಂಟರ್", ta: "கட்டளை மையம்", te: "కమాండ్ సెంటర్", mr: "कमांड सेंटर", bn: "কমান্ড সেন্টার", gu: "કમાન્ડ સેન્ટર", pa: "ਕਮਾਂਡ ਸੈਂਟਰ", ml: "കമാൻഡ് സെന്റർ", or: "କମାଣ୍ଡ ସେଣ୍ଟର" },
-  "Land & Satellite": { hi: "भूमि एवं उपग्रह", kn: "ಭೂಮಿ ಮತ್ತು ಉಪಗ್ರಹ", ta: "நிலம் & செயற்கைக்கோள்", te: "భూమి & ఉపగ్రహం", mr: "जमीन आणि उपग्रह", bn: "জমি ও উপগ্রহ", gu: "જમીન અને ઉપગ્રહ", pa: "ਜ਼ਮੀਨ ਅਤੇ ਉਪਗ੍ਰਹਿ", ml: "ഭൂമിയും ഉപഗ്രഹവും", or: "ଜମି ଏବଂ ଉପଗ୍ରହ" },
+  "Land & Satellite": { hi: "भूमि एवं उपग्रह", kn: "ಭೂಮಿ ಮತ್ತು ಉಪಗ್ರಹ", ta: "நிலம் & செயற்கைக்கோள்", te: "భూమి & ఉపగ్రహం", mr: "जमीन आणि उपग्रह", bn: "জমি ও उपग्रह", gu: "જમીન અને ઉપગ્રહ", pa: "ਜ਼ਮੀਨ ਅਤੇ ਉਪਗ੍ਰਹਿ", ml: "ഭൂമിയും ഉപഗ്രഹവും", or: "ଜମି ଏବଂ ଉପଗ୍ରହ" },
   "Soil & Weather": { hi: "मृदा एवं मौसम", kn: "ಮಣ್ಣು ಮತ್ತು ಹವಾಮಾನ", ta: "மண் & வானிலை", te: "నేల & వాతావరణం", mr: "माती आणि हवामान", bn: "মাটি ও আবহাওয়া", gu: "જમીન અને હવામાન", pa: "ਮਿੱਟੀ ਅਤੇ ਮੌਸਮ", ml: "മണ്ണും കാലാവസ്ഥയും", or: "ମାଟି ଏବଂ ପାଣିପାଗ" },
   "Farm Hub & AI": { hi: "फार्म हब एवं एआई", kn: "ಫಾರ್ಮ್ ಹಬ್ & AI", ta: "பண்ணை மையம் & AI", te: "ఫామ్ హబ్ & AI", mr: "फार्म हब आणि एआय", bn: "ফার্ম হাব ও এআই", gu: "ફાર્મ હબ અને AI", pa: "ਫਾਰਮ ਹੱਬ ਅਤੇ ਏਆਈ", ml: "ഫാം ഹബ്ബും AIയും", or: "ଫାର୍ମ ହବ୍ ଏବଂ AI" },
   "Land Measure & Scanner": { hi: "भूमि मापन एवं स्कैनर", kn: "ಭೂಮಿ ಅಳತೆ ಮತ್ತು ಸ್ಕ್ಯಾನರ್", ta: "நில அளவீடு & ஸ்கேனர்", te: "భూమి కొలత & స్కానర్", mr: "जमीन मोजणी आणि स्कॅनर", bn: "জমি পরিমাপ ও স্ক্যানার", gu: "જમીન માપણી અને સ્કેનર", pa: "ਜ਼ਮੀਨ ਮਿਣਤੀ ਅਤੇ ਸਕੈਨਰ", ml: "ഭൂമി അളക്കലും സ്കാനറും", or: "ଜମି ମାପ ଏବଂ ସ୍କାନର୍" },
   "Land Measure & Scan": { hi: "भूमि मापन एवं स्कैन", kn: "ಭೂಮಿ ಅಳತೆ ಮತ್ತು ಸ್ಕ್ಯಾನ್", ta: "நில அளவீடு & ஸ்கேன்", te: "భూమి కొలత & స్కాన్", mr: "जमीन मोजणी आणि स्कॅन", bn: "জমি পরিমাপ ও স্ক্যান", gu: "જમીન માપણી અને સ્કેન", pa: "ਜ਼ਮੀਨ ਮਿਣਤੀ ਅਤੇ ਸਕੈਨ", ml: "ഭൂമി അളക്കലും സ്കാനും", or: "ଜମି ମାପ ଏବଂ ସ୍କାନ୍" },
   "GeoSR-AI Studio": { hi: "जियोएसआर उपग्रह स्टूडियो", kn: "ಜಿಯೋಎಸ್‌ಆರ್ ಸ್ಟುಡಿಯೋ", ta: "ஜியோஎஸ்ஆர் ஸ்டுடியோ", te: "జియోఎస్ఆర్ స్టూడియో", mr: "जिओएसआर स्टुडिओ", bn: "জিওএসআর স্টুডিও", gu: "જિયોએસઆર સ્ટુડિયો", pa: "ਜੀਓਐਸਆਰ ਸਟੂਡੀਓ", ml: "ജിയോഎസ്ആർ സ്റ്റുഡിയോ", or: "ଜିଓଏସଆର ଷ୍ଟୁଡିଓ" },
-  "Weather Radar & Microclimate": { hi: "मौसम रडार एवं सूक्ष्म जलवायु", kn: "ಹವಾಮಾನ ರಾಡಾರ್", ta: "வானிலை ரேடார்", te: "వాతావరణ రాడార్ & సూక్ష్మ వాతావరణం", mr: "हवामान रडार", bn: "আবহাওয়া রাডার", gu: "હવામાન રડાર", pa: "ਮੌਸਮ ਰਾਡਾਰ", ml: "കാലാവസ്ഥാ റഡാർ" },
+  "Weather Radar & Microclimate": { hi: "मौसम रडार एवं सूक्ष्म जलवायु", kn: "ಹವಾಮಾನ ರಾಡಾರ್", ta: "வானிலை ரேடಾರ್", te: "వాతావరణ రాడార్ & సూక్ష్మ వాతావరణం", mr: "हवामान रडार", bn: "আবহাওয়া রাডার", gu: "હવામાન રડાર", pa: "ਮੌਸਮ ਰਾਡਾਰ", ml: "കാലാവസ്ഥാ റഡാർ" },
   "Soil NPK & Depletion": { hi: "मृदा पोषक तत्व एवं क्षरण", kn: "ಮಣ್ಣಿನ NPK ಮತ್ತು ಕ್ಷೀಣತೆ", ta: "மண் NPK மற்றும் குறைவு", te: "నేల NPK & పోషకాల క్షీణత", mr: "माती एनपीके आणि घट", bn: "মাটি এনপিকে ও ক্ষয়", gu: "જમીન NPK અને ક્ષતિ", pa: "ਮਿੱਟੀ NPK ਅਤੇ ਘਾਟ", ml: "മണ്ണ് NPK ക്ഷയം" },
   "AI Agronomist": { hi: "कृषि मित्र एआई", kn: "ಕೃಷಿ ಮಿತ್ರ AI", ta: "வேளாண் நண்பன் AI", te: "కృషి మిత్ర AI", mr: "कृषी मित्र एआय", bn: "কৃষি মিত্র এআই", gu: "કૃષિ મિત્ર એઆઈ", pa: "ਕ੍ਰਿਸ਼ੀ ਮਿੱਤਰ ਏਆਈ", ml: "കാർഷിക മിത്രം AI", or: "କୃଷି ମିତ୍ର AI" },
   "My Farm Parcels": { hi: "मेरे खेत के पार्सल", kn: "ನನ್ನ ಜಮೀನುಗಳು", ta: "எனது பண்ணைகள்", te: "నా వ్యవసాయ క్షేత్రాలు", mr: "माझी शेतं", bn: "আমার খামার প্লট", gu: "મારા ખેતરો", pa: "ਮੇਰੇ ਖੇਤ", ml: "എന്റെ കൃഷിയിടങ്ങൾ" },
   "National Analytics": { hi: "राष्ट्रीय फसल विश्लेषण", kn: "ರಾಷ್ಟ್ರೀಯ ಕೃಷಿ ವಿಶ್ಲೇಷಣೆ", ta: "தேசிய வேளாண் பகுப்பாய்வு", te: "జాతీయ వ్యవసాయ విశ్లేషణ", mr: "राष्ट्रीय कृषी विश्लेषण", bn: "জাতীয় কৃষি विश्लेषण", gu: "રાષ્ટ્રીય કૃષિ વિશ્લેષણ", pa: "ਰਾਸ਼ਟਰੀ ਖੇਤੀ ਵਿਸ਼ਲੇਸ਼ਣ", ml: "ദേശീയ കാർഷിക വിശകലനം" },
-  "Home": { hi: "होम", kn: "ಮುಖಪುಟ", ta: "முகப்பு", te: "హోమ్", mr: "मुख्यपृष्ठ", bn: "হোম", gu: "હોમ", pa: "ਮੁੱਖ ਪੰਨਾ", ml: "ഹോം" },
+  "Home": { hi: "होम", kn: "ಮುಖಪುಟ", ta: "முகப்பு", te: "హోమ్", mr: "मुख्यपृष्ठ", bn: "হোম", gu: "હોમ", pa: "ਮੁੱਖ ਪੰನಾ", ml: "ഹോം" },
   "Login Dashboard": { hi: "लॉगिन डैशबोर्ड", kn: "ಲಾಗಿನ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", ta: "உள்நுழைவு டாஷ்போர்டு", te: "లాగిన్ డాష్‌బోర్డ్", mr: "लॉगिन डॅशबोर्ड", bn: "লগইন ড্যাশবোর্ড", gu: "લૉગિન ડૅશબોર્ડ", pa: "ਲਾਗਇਨ ਡੈਸ਼ਬੋਰਡ", ml: "ലോഗിൻ ഡാഷ്ബോർഡ്" },
   "Sign In": { hi: "साइन इन", kn: "ಸೈನ್ ಇನ್", ta: "உள்நுழைக", te: "సైన్ ఇన్", mr: "साइन इन", bn: "সাইন ইন", gu: "સાઇન ઇન", pa: "ਸਾਈਨ ਇਨ", ml: "സൈൻ ഇൻ" },
 
   // Satellite Layers & Toolbars
   "True Color RGB": { hi: "प्राकृतिक रंग (RGB)", kn: "ನೈಜ ಬಣ್ಣ RGB", ta: "உண்மை நிறம் RGB", te: "సహజ రంగు RGB", mr: "नैसर्गिक रंग RGB", bn: "প্রাকৃতিক রঙ RGB", gu: "કુદરતી રંગ RGB", pa: "ਅਸਲ ਰੰਗ RGB", ml: "യഥാർത്ഥ നിറം RGB" },
   "NDVI Biomass": { hi: "एनडीवीआई बायोमास", kn: "NDVI ಬಯೋಮಾಸ್", ta: "NDVI பயோமாஸ்", te: "NDVI బయోమాస్ (పచ్చదనం)", mr: "एनडीव्हीआय बायोमास", bn: "এনডিভিআই বায়োমাস", gu: "NDVI બાયોમાસ", pa: "NDVI ਬਾਇਓਮਾਸ", ml: "NDVI ബയോമാസ്" },
-  "NIR Infrared (B8)": { hi: "एनआईआर इन्फ्रारेड (B8)", kn: "NIR ಇನ್‌ಫ್ರಾರೆಡ್ (B8)", ta: "NIR அகச்சிவப்பு (B8)", te: "NIR ఇన్‌ఫ్రారెడ్ (క్లోరోఫిల్)", mr: "एनआयआर इन्फ्रारेड (B8)", bn: "এনআইআর ইনফ্রারেড (B8)", gu: "NIR ઇન્ફ્રારેડ (B8)", pa: "NIR ਇਨਫਰਾਰੈੱਡ (B8)", ml: "NIR ഇൻഫ്രാറെഡ് (B8)" },
+  "NIR Infrared (B8)": { hi: "एनआईआर इन्फ्रारेड (B8)", kn: "NIR ಇನ್‌ಫ್ರಾರೆಡ್ (B8)", ta: "NIR அகச்சிவப்பு (B8)", te: "NIR ఇన్‌ఫ్రారెడ్ (క్లోరోఫిల్)", mr: "एनआयआर इन्फ्रारेड (B8)", bn: "এনআইআর ইনফ্রारेড (B8)", gu: "NIR ઇન્ફ્રારેડ (B8)", pa: "NIR ਇਨਫਰਾਰੈੱਡ (B8)", ml: "NIR ഇൻഫ്രാറെഡ് (B8)" },
   "Uncertainty": { hi: "अनिश्चितता", kn: "ಅನಿಶ್ಚಿತತೆ", ta: "நிச்சயமற்ற தன்மை", te: "అనిశ్చితి విశ్లేషణ", mr: "अनिश्चितता", bn: "অনিশ্চয়তা", gu: "અનિશ્ચિતતા", pa: "ਅਨਿਸ਼ਚਿਤਤਾ", ml: "അനിശ്ചിതത്വം" },
-  "Parcel AI": { hi: "पार्सल एआई", kn: "ಪಾರ್ಸಲ್ AI", ta: "நிலப்பரப்பு AI", te: "భూమి సరిహద్దు AI", mr: "पार्सल एआय", bn: "প্লট এআই", gu: "પાર્સલ AI", pa: "ਪਾਰਸਲ ਏਆਈ", ml: "പാഴ്സൽ AI" },
-  "Download Agronomic Report": { hi: "कृषि रिपोर्ट डाउनलोड करें", kn: "ಕೃಷಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ", ta: "வேளாண் அறிக்கையை பதிவிறக்குக", te: "వ్యవసాయ నివేదికను డౌన్‌లోడ్ చేయండి", mr: "कृषी अहवाल डाउनलोड करा", bn: "কৃষি রিপোর্ট ডাউনলোড করুন", gu: "કૃષિ રિપોર્ટ ડાઉનલોડ કરો", pa: "ਖੇਤੀਬਾੜੀ ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ", ml: "കാർഷിക റിപ്പോർട്ട് ഡൗൺലോഡ് ചെയ്യുക" },
-  "Download Full Report": { hi: "संपूर्ण रिपोर्ट डाउनलोड करें", kn: "ಸಂಪೂರ್ಣ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ", ta: "முழு அறிக்கையை பதிவிறக்குக", te: "పూర్తి నివేదికను డౌన్‌లోడ్ చేయండి", mr: "पूर्ण अहवाल डाउनलोड करा", bn: "সম্পূর্ণ রিপোর্ট ডাউনলোড করুন", gu: "સંપૂર્ણ રિપોર્ટ ડાઉનલોડ કરો" },
+  "Parcel AI": { hi: "पार्सल एआई", kn: "ಪಾರ್ಸಲ್ AI", ta: "நிலப்பரப்பு AI", te: "భూమి సరిహద్దు AI", mr: "पार्सल एआय", bn: "প্লট এআই", gu: "પાર્સલ AI", pa: "ਪਾਰਸલ ਏਆਈ", ml: "പാഴ്സൽ AI" },
+  "Download Agronomic Report": { hi: "कृषि रिपोर्ट डाउनलोड करें", kn: "ಕೃಷಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ", ta: "வேளாண் அறிக்கையை பதிவிறக்குக", te: "వ్యవసాయ నివేదికను డౌన్‌లోడ్ చేయండి", mr: "कृषी अहवाल डाउनलोड करा", bn: "কৃষি رپورٹ ডাউনলোড করুন", gu: "કૃષિ રિપોર્ટ ડાઉનલોડ કરો", pa: "ਖੇਤੀਬਾੜੀ ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ", ml: "കാർഷിക റിപ്പോർട്ട് ഡൗൺലോഡ് ചെയ്യുക" },
+  "Download Full Report": { hi: "संपूर्ण रिपोर्ट डाउनलोड करें", kn: "ಸಂಪೂರ್ಣ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ", ta: "முழு அறிக்கையை பதிவிறக்குக", te: "పూర్తి నివేదికను డౌన్‌లోడ్ చేయండి", mr: "पूर्ण अहवाल डाउनलोड करा", bn: "সম্পূর্ণ رپورٹ ডাউনলোড করুন", gu: "સંપૂર્ણ રિપોર્ટ ડાઉનલોડ કરો" },
   "Execute Super-Resolution Mapping": { hi: "सुपर-रेजोल्यूशन मैपिंग चलाएं", kn: "ಸೂಪರ್-ರೆಸಲ್ಯೂಶನ್ ಮ್ಯಾಪಿಂಗ್ ರನ್ ಮಾಡಿ", ta: "சூப்பர்-ரெசல்யூஷன் மேப்பிங்கை இயக்கவும்", te: "సూపర్-రిజల్యూషన్ మ్యాపింగ్ ప్రారంభించండి", mr: "सुपर-रिझोल्यूशन मॅपिंग कार्यान्वित करा" },
   "Mean NDVI Biomass": { hi: "औसत एनडीवीआई बायोमास", kn: "ಸರಾಸರಿ NDVI ಬಯೋಮಾಸ್", ta: "சராசரி NDVI பயோமாஸ்", te: "సగటు NDVI బయోమాస్", mr: "सरासरी एनडीव्हीआय बायोमास" },
   "Cadastral Parcels": { hi: "राजस्व पार्सल", kn: "ಭೂದಾಖಲೆ ಪಾರ್ಸಲ್‌ಗಳು", ta: "நிலப்பதிவேடு பார்சல்கள்", te: "భూ రికార్డుల పార్సెల్స్", mr: "जमीन तुकडे" },
@@ -44,7 +44,7 @@ export const CLIENT_TRANSLATION_MAP = {
   "Soil Health Index": { hi: "मृदा स्वास्थ्य सूचकांक", kn: "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಸೂಚ್ಯಂಕ", ta: "மண் நலக் குறியீடு", te: "నేల ఆరోగ్య సూచిక", mr: "माती आरोग्य निर्देशांक", bn: "মাটি স্বাস্থ্য সূচক", gu: "જમીન સ્વાસ્થ્ય સૂચકાંક" },
   "Est. Net Profit / Acre": { hi: "अनुमानित शुद्ध लाभ / एकड़", kn: "ಅಂದಾಜು ನಿವ್ವಳ ಲಾಭ / ಎಕರೆ", ta: "மதிப்பிடப்பட்ட நிகர லாபம் / ஏக்கர்", te: "అంచనా నికర లాభం / ఎకరం", mr: "अंदाजे निव्वळ नफा / एकर", bn: "আনুমানিক নেট লাভ / একর", gu: "અંદાજિત ચોખ્ખો નફો / એકર" },
   "Monoculture Loss Risk": { hi: "मोनोकल्चर नुकसान जोखिम", kn: "ಏಕಬೆಳೆ ನಷ್ಟದ ಅಪಾಯ", ta: "ஒற்றைப் பயிர் நஷ்ட அபாயம்", te: "ఒకే పంట నష్ట ముప్పు", mr: "एकल पीक नुकसान धोका" },
-  "Rotation Profit Gain": { hi: "फसल चक्र लाभ वृद्धि", kn: "ಬೆಳೆ ಪರಿವರ್ತನೆ ಲಾಭ", ta: "பயிர் சுழற்சி லாப உயர்வு", te: "పంట మార్పిడి లాభం", mr: "पीक फेરपालट नफा वाढ" },
+  "Rotation Profit Gain": { hi: "फसल चक्र लाभ वृद्धि", kn: "ಬೆಳೆ ಪರಿವರ್ತನೆ ಲಾಭ", ta: "பயிர் சுழற்சி ಲಾப உயர்வு", te: "పంట మార్పిడి లాభం", mr: "पीक फेરपालट नफा वाढ" },
   "Optimal Precision Yield": { hi: "इष्टतम सटीक उपज", kn: "ಉತ್ತಮ ಇಳುವರಿ", ta: "உகந்த துல்லிய மகசூல்", te: "సరైన అత్యధిక దిగుబడి", mr: "उत्कृष्ट अचूक उत्पादन" },
   "Available Nitrogen (N)": { hi: "उपलब्ध नाइट्रोजन (N)", kn: "ಲಭ್ಯವಿರುವ ಸಾರಜನಕ (N)", ta: "கிடைக்கக்கூடிய நைட்ரஜன் (N)", te: "లభ్యమయ్యే నత్రజని (N)", mr: "उपलब्ध नत्र (N)" },
   "Available Phosphorus (P)": { hi: "उपलब्ध फास्फोरस (P)", kn: "ಲಭ್ಯವಿರುವ ರಂಜಕ (P)", ta: "கிடைக்கக்கூடிய பாஸ்பரஸ் (P)", te: "లభ్యమయ్యే భాస్వరం (P)", mr: "उपलब्ध स्फुरद (P)" },
@@ -67,7 +67,7 @@ export const CLIENT_TRANSLATION_MAP = {
   "Maize": { hi: "मक्का", kn: "ಮೆಕ್ಕೆಜೋಳ", ta: "மக்காச்சோளம்", te: "మొక్కజొన్న", mr: "मका", bn: "ভুট্টা", gu: "મકાઈ", pa: "ਮੱਕੀ", ml: "ചോളം", or: "ମକା" },
   "Soybean": { hi: "सोयाबीन", kn: "ಸೋಯಾಬೀನ್", ta: "சோயாபீன்", te: "సోయాబీన్", mr: "सोयाबीन", bn: "সয়াবিন", gu: "સોયાબીન", pa: "ਸੋਇਆਬੀਨ", ml: "സോയാബീൻ", or: "ସୋୟାବିନ୍" },
   "Chickpea": { hi: "चना", kn: "ಕಡಲೆ", ta: "கொண்டைக்கடலை", te: "శనగలు", mr: "हरभरा", bn: "ছোলা", gu: "ચણા", pa: "ਛੋਲੇ", ml: "കടല", or: "ବୁଟ" },
-  "Mustard": { hi: "सरसों", kn: "ಸಾಸಿವೆ", ta: "கடுகு", te: "ఆవాలు", mr: "मोहरी", bn: "সরিষা", gu: "રાઈ", pa: "ਸਰ੍ਹੋਂ", ml: "കടുക്", or: "ସୋରିଷ" },
+  "Mustard": { hi: "सरसों", kn: "ಸಾಸಿವೆ", ta: "கடுகு", te: "ఆవాలు", mr: "मोहरी", bn: "સରିষা", gu: "રાઈ", pa: "ਸਰ੍ਹੋਂ", ml: "കടുക്", or: "ସୋରିଷ" },
   "Chilli": { hi: "मिर्च", kn: "ಮೆಣಸಿನಕಾಯಿ", ta: "மிளகாய்", te: "మిరపకాయ", mr: "मिरची", bn: "মরিচ", gu: "મરચું", pa: "ਮਿਰਚ", ml: "മുളക്", or: "ଲଙ୍କା" },
   "Groundnut": { hi: "मूंगफली", kn: "ಕಡಲೆಕಾಯಿ", ta: "வேர்க்கடலை", te: "వేరుశనగ", mr: "भुईमूग", bn: "চীনাবাদাম", gu: "મગફળી", pa: "ਮੂੰਗਫਲੀ", ml: "നിലക്കടല", or: "ଚିନାବାଦାମ" },
   "Black Gram": { hi: "उड़द", kn: "ಉದ್ದು", ta: "உளுந்து", te: "మినుములు", mr: "उडीद", bn: "মাষকলাই", gu: "અડદ", pa: "ਮਾਂਹ", ml: "ഉഴുന്ന്", or: "ବିରି" },
@@ -102,7 +102,7 @@ export const CLIENT_TRANSLATION_MAP = {
   "Optimized Input Cost (Dosing AI):": { hi: "अनुकूलित लागत (डोज़िंग AI):", kn: "ಉತ್ತಮಗೊಳಿಸಿದ ವೆಚ್ಚ (ಡೋಸಿಂಗ್ AI):", ta: "உகந்த உள்ளீட்டு செலவு:", te: "తగ్గిన పెట్టుబడి వ్యయం (డోసింగ్ AI):", mr: "कमी झालेला खर्च:" },
   "Bio-Fixation Savings (Rhizobium):": { hi: "जैव-स्थिरीकरण बचत (राइजोबियम):", kn: "ಜೈವಿಕ ಸಾರಜನಕ ಉಳಿತಾಯ:", ta: "உயிரியல் உர சேமிப்பு:", te: "రైజోబియం జీవ ఎరువుల ఆదా:", mr: "जैविक बचत:" },
   "Maximized Net Farmer Profit:": { hi: "अधिकतम शुद्ध किसान लाभ:", kn: "ಗರಿಷ್ಠ ನಿವ್ವಳ ರೈತರ ಲಾಭ:", ta: "அதிகபட்ச நிகர விவசாயி லாபம்:", te: "గరిష్ట రైతు నికర లాభం:", mr: "जास्तीत जास्त निव्वळ नफा:" },
-  "3-Season Cumulative Profit Forecast": { hi: "3-सीजन संचयी लाभ पूर्वानुमान", kn: "3-ಸೀಸನ್‌ಗಳ ಒಟ್ಟು ಲಾಭದ ಮುನ್ಸೂಚನೆ", ta: "3-பருவ ஒட்டுமொத்த லாப முன்னறிவிப்பு", te: "3-సీజన్ల మొత్తం నికర లాభాల అంచనా", mr: "3-हंगामांचा एकूण नफा अंदाज" },
+  "3-Season Cumulative Profit Forecast": { hi: "3-सीजन संचयी लाभ पूर्वानुमान", kn: "3-ಸೀಸನ್‌ಗಳ ಒಟ್ಟು ಲಾಭದ ಮುನ್ಸೂಚನೆ", ta: "3-பருவ ஒட்டுமொத்த ಲಾಭದ ಮುನ್ಸೂಚನೆ", te: "3-సీజన్ల మొత్తం నికర లాభాల అంచనా", mr: "3-हंगामांचा एकूण नफा अंदाज" },
 
   // Crop Advisory
   "🌾 Top Recommended Crops for this Parcel": {
@@ -152,15 +152,33 @@ export const CLIENT_TRANSLATION_MAP = {
   "Download Full Agronomic Report": { hi: "पूर्ण कृषि रिपोर्ट डाउनलोड करें", kn: "ಸಂಪೂರ್ಣ ಕೃಷಿ ವರದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ", ta: "முழு வேளாண் அறிக்கையை பதிவிறக்கவும்", te: "పూర్తి వ్యవసాయ నివేదికను డౌన్‌లోడ్ చేసుకోండి", mr: "पूर्ण कृषी अहवाल डाउनलोड करा" }
 };
 
+// Build Dynamic Reverse Lookup Map (Foreign String -> English Original)
+const REVERSE_TRANSLATION_MAP = new Map();
+
+for (const [englishTerm, langObj] of Object.entries(CLIENT_TRANSLATION_MAP)) {
+  for (const [langCode, foreignTerm] of Object.entries(langObj)) {
+    if (foreignTerm && foreignTerm.trim()) {
+      REVERSE_TRANSLATION_MAP.set(foreignTerm.trim(), englishTerm);
+      REVERSE_TRANSLATION_MAP.set(foreignTerm.trim().toLowerCase(), englishTerm);
+    }
+  }
+}
+
 // In-memory instant lookup cache
 const dynamicTranslationCache = new Map();
+const reverseDynamicCache = new Map();
 
 // Local Storage Cache Loader
 try {
-  const stored = localStorage.getItem('agri_dynamic_translations_v2');
+  const stored = localStorage.getItem('agri_dynamic_translations_v3');
   if (stored) {
     const parsed = JSON.parse(stored);
-    Object.entries(parsed).forEach(([k, v]) => dynamicTranslationCache.set(k, v));
+    Object.entries(parsed).forEach(([k, v]) => {
+      dynamicTranslationCache.set(k, v);
+      const [lang, ...origParts] = k.split(':');
+      const orig = origParts.join(':');
+      if (orig && v) reverseDynamicCache.set(v.trim(), orig);
+    });
   }
 } catch (e) {}
 
@@ -168,7 +186,7 @@ function persistCache() {
   try {
     const obj = {};
     dynamicTranslationCache.forEach((v, k) => { obj[k] = v; });
-    localStorage.setItem('agri_dynamic_translations_v2', JSON.stringify(obj));
+    localStorage.setItem('agri_dynamic_translations_v3', JSON.stringify(obj));
   } catch (e) {}
 }
 
@@ -197,7 +215,7 @@ function shouldSkipNode(node) {
   if (!parent) return true;
 
   const tag = parent.tagName;
-  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME'].includes(tag)) {
+  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME', 'INPUT', 'TEXTAREA'].includes(tag)) {
     return true;
   }
 
@@ -210,6 +228,15 @@ function shouldSkipNode(node) {
   }
 
   return false;
+}
+
+/**
+ * Checks if a string contains Indic/non-Latin scripts (Telugu, Devanagari, Kannada, Tamil, etc.)
+ */
+function isIndicOrNonLatin(text) {
+  if (!text) return false;
+  // Unicode range for Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam
+  return /[\u0900-\u0D7F]/.test(text);
 }
 
 /**
@@ -244,8 +271,25 @@ export function lookupFastTranslation(text, targetLang) {
 }
 
 /**
+ * Reverse translation to restore pure English
+ */
+export function lookupEnglishOriginal(foreignText) {
+  if (!foreignText) return foreignText;
+  const trimmed = foreignText.trim();
+  if (REVERSE_TRANSLATION_MAP.has(trimmed)) {
+    return REVERSE_TRANSLATION_MAP.get(trimmed);
+  }
+  if (REVERSE_TRANSLATION_MAP.has(trimmed.toLowerCase())) {
+    return REVERSE_TRANSLATION_MAP.get(trimmed.toLowerCase());
+  }
+  if (reverseDynamicCache.has(trimmed)) {
+    return reverseDynamicCache.get(trimmed);
+  }
+  return null;
+}
+
+/**
  * Live Neural Translation Fetcher for ANY unknown word or sentence
- * Uses free Google Translate single API endpoint + local storage caching
  */
 export async function fetchLiveNeuralTranslation(text, targetLang) {
   if (!text || targetLang === 'en') return text;
@@ -267,20 +311,22 @@ export async function fetchLiveNeuralTranslation(text, targetLang) {
       if (data && Array.isArray(data[0])) {
         const translated = data[0].map(item => item[0]).join('');
         if (translated && translated.trim()) {
-          dynamicTranslationCache.set(cacheKey, translated.trim());
+          const transTrim = translated.trim();
+          dynamicTranslationCache.set(cacheKey, transTrim);
+          reverseDynamicCache.set(transTrim, trimmed);
           persistCache();
-          return translated.trim();
+          return transTrim;
         }
       }
     }
   } catch (err) {
-    // Fallback: try tokenizing sub-words
     const words = trimmed.split(/\s+/);
     if (words.length > 1) {
       const translatedWords = words.map(w => lookupFastTranslation(w, targetLang) || w);
       const joined = translatedWords.join(' ');
       if (joined !== trimmed) {
         dynamicTranslationCache.set(cacheKey, joined);
+        reverseDynamicCache.set(joined, trimmed);
         return joined;
       }
     }
@@ -290,7 +336,7 @@ export async function fetchLiveNeuralTranslation(text, targetLang) {
 }
 
 /**
- * Translates a single text node instantly with fast lookup and background neural fallback
+ * Translates a single text node with 100% bidirectional English safety
  */
 function translateTextNode(node, targetLang) {
   if (!node || node.nodeType !== Node.TEXT_NODE) return;
@@ -299,37 +345,52 @@ function translateTextNode(node, targetLang) {
   const raw = node.nodeValue;
   if (!raw || !raw.trim()) return;
 
-  // Stash original English text on node
-  if (!node.__agriOriginalText) {
+  // Stash original text ONLY if it's not already Indic/translated text
+  if (!node.__agriOriginalText && !isIndicOrNonLatin(raw)) {
     node.__agriOriginalText = raw;
   }
 
-  const origText = node.__agriOriginalText;
-  if (!origText || !origText.trim()) return;
-
-  // If target is English, restore original
+  // 1. If target is English (en):
   if (targetLang === 'en') {
-    if (node.nodeValue !== origText) {
-      node.nodeValue = origText;
+    if (node.__agriOriginalText && !isIndicOrNonLatin(node.__agriOriginalText)) {
+      if (node.nodeValue !== node.__agriOriginalText) {
+        node.nodeValue = node.__agriOriginalText;
+      }
+    } else {
+      // Find original English string via reverse translation
+      const engMatch = lookupEnglishOriginal(raw);
+      if (engMatch) {
+        const leading = raw.match(/^\s*/)?.[0] || '';
+        const trailing = raw.match(/\s*$/)?.[0] || '';
+        node.nodeValue = `${leading}${engMatch}${trailing}`;
+        node.__agriOriginalText = node.nodeValue;
+      }
     }
     return;
   }
 
-  const fastMatch = lookupFastTranslation(origText, targetLang);
+  // 2. If target is another language:
+  const sourceText = (node.__agriOriginalText && !isIndicOrNonLatin(node.__agriOriginalText)) 
+    ? node.__agriOriginalText 
+    : (lookupEnglishOriginal(raw) || raw);
+
+  if (!sourceText || !sourceText.trim()) return;
+
+  const fastMatch = lookupFastTranslation(sourceText, targetLang);
   if (fastMatch) {
-    const leading = origText.match(/^\s*/)?.[0] || '';
-    const trailing = origText.match(/\s*$/)?.[0] || '';
+    const leading = sourceText.match(/^\s*/)?.[0] || '';
+    const trailing = sourceText.match(/\s*$/)?.[0] || '';
     const result = `${leading}${fastMatch}${trailing}`;
     if (node.nodeValue !== result) {
       node.nodeValue = result;
       translatedNodesCount++;
     }
   } else {
-    // Unknown phrase: trigger live neural translation and update seamlessly
-    fetchLiveNeuralTranslation(origText, targetLang).then(translated => {
-      if (translated && node.parentElement && node.nodeValue !== translated) {
-        const leading = origText.match(/^\s*/)?.[0] || '';
-        const trailing = origText.match(/\s*$/)?.[0] || '';
+    // Neural fallback
+    fetchLiveNeuralTranslation(sourceText, targetLang).then(translated => {
+      if (translated && node.parentElement) {
+        const leading = sourceText.match(/^\s*/)?.[0] || '';
+        const trailing = sourceText.match(/\s*$/)?.[0] || '';
         node.nodeValue = `${leading}${translated}${trailing}`;
         translatedNodesCount++;
         updateLiveStats();
@@ -388,32 +449,32 @@ class LiveDOMTranslator {
       this.observer.disconnect();
     }
 
-    // Debounced MutationObserver (0ms lag, no cascading cycles)
-    this.observer = new MutationObserver((mutations) => {
-      if (!this.isActive || this.currentLang === 'en') return;
+    if (targetLang !== 'en') {
+      this.observer = new MutationObserver(() => {
+        if (!this.isActive || this.currentLang === 'en') return;
 
-      if (this.debounceTimer) clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        translateSubtree(document.body, this.currentLang);
-      }, 50);
-    });
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => {
+          translateSubtree(document.body, this.currentLang);
+        }, 50);
+      });
 
-    this.observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: false
-    });
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: false
+      });
+    }
   }
 
   setLanguage(newLang) {
     this.currentLang = newLang;
-    if (this.isActive) {
-      translateSubtree(document.body, newLang);
-    }
+    translateSubtree(document.body, newLang);
   }
 
   stop() {
     this.isActive = false;
+    this.currentLang = 'en';
     if (this.observer) {
       this.observer.disconnect();
     }
