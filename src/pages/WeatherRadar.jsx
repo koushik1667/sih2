@@ -29,7 +29,9 @@ import {
   Filter,
   Sprout,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
@@ -612,23 +614,53 @@ export const WeatherRadar = () => {
                     </div>
                   )}
 
-                  {/* Topic Tag Chips */}
-                  {art.tags && art.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {art.tags.map((tag, tIdx) => (
-                        <span key={tIdx} className="px-2 py-0.5 rounded-md bg-[#F0EBE5]/70 text-[#78786C] text-[10px] font-semibold">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {/* Topic Tag Chips & Website Source Link Badge */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    {art.tags && art.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {art.tags.map((tag, tIdx) => (
+                          <span key={tIdx} className="px-2 py-0.5 rounded-md bg-[#F0EBE5]/70 text-[#78786C] text-[10px] font-semibold">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
-                  {/* Card Footer Toolbar: Source, Speech Narration, Copy & Expand */}
+                    {art.sourceUrl && (
+                      <a
+                        href={art.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#5D7052]/10 hover:bg-[#5D7052] text-[#5D7052] hover:text-white border border-[#5D7052]/25 transition shadow-xs group cursor-pointer"
+                        title={`Open official news website: ${art.sourceUrl}`}
+                      >
+                        <Globe className="w-3 h-3 text-[#5D7052] group-hover:text-white transition-colors" />
+                        <span>{art.sourceDomain || 'Source Portal'}</span>
+                        <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Card Footer Toolbar: Clickable Source Link, Speech Narration, Copy & Expand */}
                   <div className="pt-3 border-t border-[#DED8CF]/60 flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-[11px] text-[#78786C] font-medium truncate max-w-[180px] sm:max-w-xs">
-                      <Building className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
-                      <span className="truncate" title={art.source}>{art.source}</span>
-                    </div>
+                    {art.sourceUrl ? (
+                      <a
+                        href={art.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-[11px] text-[#5D7052] hover:text-[#2C2C24] font-semibold truncate max-w-[180px] sm:max-w-xs group cursor-pointer"
+                        title={`Visit official publication: ${art.sourceUrl}`}
+                      >
+                        <Building className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                        <span className="truncate group-hover:underline">{art.source}</span>
+                        <ExternalLink className="w-2.5 h-2.5 text-[#5D7052] opacity-70 group-hover:opacity-100 shrink-0" />
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#78786C] font-medium truncate max-w-[180px] sm:max-w-xs">
+                        <Building className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                        <span className="truncate" title={art.source}>{art.source}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       {/* Audio Narration Button */}
