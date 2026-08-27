@@ -18,7 +18,10 @@ import {
   Menu,
   X,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Layers,
+  Activity,
+  Users
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -58,20 +61,52 @@ export const Navigation = () => {
     return () => clearInterval(interval);
   }, [isNotifOpen]);
 
+  // 🌟 EXACTLY 4 STREAMLINED CORE MODULES (Clean & Spacious Navbar)
   const navItems = [
-    { id: 'home', label: 'Home', icon: Globe, desc: 'Overview & Global Portal' },
-    { id: 'command_center', label: t('nav_command_center') || 'Command Center', icon: LayoutDashboard, desc: 'Agri Command & Macro Analytics' },
-    { id: 'land_scanner', label: 'Land Measure & Scan', icon: Compass, badge: 'Live GIS', desc: 'Geodesic Acreage & Spectral Scanner' },
-    { id: 'satellite_srm', label: t('nav_satellite_srm') || 'GeoSR-AI Studio', icon: Satellite, badge: 'GeoSR', desc: 'Sentinel & Landsat Super-Resolution' },
-    { id: 'soil_precision', label: t('nav_soil_precision') || 'Soil & Depletion', icon: Sprout, desc: 'NPK Drawdown & Crop Rotation' },
-    { id: 'national_analytics', label: t('nav_national_analytics') || 'National Analytics', icon: BarChart3, badge: 'Power BI', desc: 'National Crop Matrix & Economics' },
-    { id: 'ai_agronomist', label: t('nav_ai_agronomist') || 'AI Agronomist', icon: Bot, desc: 'Krishi Mitra Multilingual Advisory' },
-    { id: 'farms', label: t('nav_farms') || 'My Farms', icon: MapPin, desc: 'Cloud Farm Parcels & Registry' },
-    { id: 'weather', label: t('nav_weather') || 'Weather Radar', icon: CloudSun, badge: 'Live Doppler', desc: 'Live Radar & Spray Windows' },
-    { id: 'login', label: isAuthenticated ? 'Farmer Account' : 'Login Dashboard', icon: User, badge: isAuthenticated ? 'Cloud' : undefined, desc: 'Database Sync & Credentials' }
+    { 
+      id: 'command_center', 
+      label: t('nav_command_center') || 'Command Center', 
+      icon: LayoutDashboard, 
+      badge: 'Core',
+      desc: 'National Agricultural Command, Real-Time Synergy & Macro KPIs',
+      subServices: ['National Output', 'Health Score', 'Action Launcher']
+    },
+    { 
+      id: 'land_satellite', 
+      label: 'Land & Satellite', 
+      icon: Satellite, 
+      badge: 'GIS & SRM',
+      desc: 'Geodesic Acreage Scanner & GeoSR-AI Multi-Spectral Super-Resolution',
+      subServices: ['Land Measure & Scan', 'GeoSR-AI Studio (4x)']
+    },
+    { 
+      id: 'soil_weather', 
+      label: 'Soil & Weather', 
+      icon: CloudSun, 
+      badge: 'Radar & NPK',
+      desc: 'IMD Doppler Radar, 24h Spray Windows & 3-Season Soil NPK Depletion',
+      subServices: ['Weather Radar & Spray Windows', 'Soil NPK & Depletion']
+    },
+    { 
+      id: 'farm_hub', 
+      label: 'Farm Hub & AI', 
+      icon: Bot, 
+      badge: 'Krishi AI',
+      desc: 'Krishi Mitra AI Advisor, Cloud Farm Parcels & Bharat National BI',
+      subServices: ['AI Agronomist Chat', 'My Farm Parcels', 'Bharat Crop Analytics']
+    }
   ];
 
   const currentLangObj = supportedLanguages.find(l => l.code === lang) || supportedLanguages[0];
+
+  const isTabActive = (itemId) => {
+    if (activeTab === itemId) return true;
+    if (itemId === 'command_center' && activeTab === 'dashboard') return true;
+    if (itemId === 'land_satellite' && (activeTab === 'land_scanner' || activeTab === 'satellite_srm')) return true;
+    if (itemId === 'soil_weather' && (activeTab === 'weather' || activeTab === 'soil_precision')) return true;
+    if (itemId === 'farm_hub' && (activeTab === 'ai_agronomist' || activeTab === 'farms' || activeTab === 'national_analytics')) return true;
+    return false;
+  };
 
   return (
     <>
@@ -81,7 +116,7 @@ export const Navigation = () => {
           {/* Top Tier: Top-Left Hamburger & Language + Logo + Right Controls */}
           <div className="flex items-center justify-between gap-2 px-1 sm:px-3 pb-2 sm:pb-2.5 border-b border-[#DED8CF]/40">
             
-            {/* Left Controls on Mobile: Hamburger Button + Top-Left Minimized Language Selector */}
+            {/* Left Controls: Hamburger Button + Top-Left Minimized Language Selector + Logo */}
             <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Mobile Hamburger Menu Button (Top Left Corner) */}
               <button
@@ -94,7 +129,7 @@ export const Navigation = () => {
               </button>
 
               {/* Minimized Language Selector (Top Left) */}
-              <div className="relative flex items-center rounded-full bg-[#F0EBE5]/90 border border-[#DED8CF] px-2 py-1 hover:bg-[#F0EBE5] transition shadow-xs">
+              <div className="relative flex items-center rounded-full bg-[#F0EBE5]/90 border border-[#DED8CF] px-2.5 py-1 hover:bg-[#F0EBE5] transition shadow-xs cursor-pointer">
                 <Globe className="w-3.5 h-3.5 text-[#5D7052] mr-1 shrink-0" />
                 <span className="text-[11px] sm:text-xs text-[#2C2C24] font-bold">
                   {currentLangObj.native}
@@ -232,27 +267,27 @@ export const Navigation = () => {
             </div>
           </div>
 
-          {/* Bottom Tier: Desktop & Tablet Horizontal Navigation Tabs (Hidden on Mobile) */}
-          <nav className="hidden md:flex space-x-1.5 overflow-x-auto pt-2 pb-0.5 scrollbar-none touch-pan-x">
+          {/* Bottom Tier: Exactly 4 Clean, Spacious Navigation Tabs (Desktop & Tablet) */}
+          <nav className="hidden md:grid grid-cols-4 gap-2 pt-2 pb-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const active = isTabActive(item.id);
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shrink-0 cursor-pointer ${
-                    isActive
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    active
                       ? 'bg-[#5D7052] text-[#F3F4F1] shadow-soft scale-100'
-                      : 'text-[#78786C] hover:text-[#2C2C24] hover:bg-[#F0EBE5]/70'
+                      : 'bg-[#F0EBE5]/40 text-[#78786C] hover:text-[#2C2C24] hover:bg-[#F0EBE5]'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-[#F3F4F1]' : 'text-[#5D7052]'}`} />
-                  <span>{item.label}</span>
+                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#F3F4F1]' : 'text-[#5D7052]'}`} />
+                  <span className="truncate">{item.label}</span>
                   {item.badge && (
-                    <span className={`px-1.5 sm:px-2 py-0.2 text-[8px] sm:text-[9px] font-extrabold rounded-full ${
-                      isActive 
+                    <span className={`px-1.5 py-0.2 text-[9px] font-extrabold rounded-full ${
+                      active 
                         ? 'bg-[#F3F4F1]/20 text-[#F3F4F1]' 
                         : 'bg-[#C18C5D]/15 text-[#C18C5D]'
                     }`}>
@@ -273,12 +308,12 @@ export const Navigation = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#5D7052] animate-ping" />
                   <span className="text-xs font-extrabold text-[#2C2C24] uppercase tracking-wider">
-                    All Application Pages & Services
+                    All 4 Core Agri-Modules &amp; Services
                   </span>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-xs font-bold text-[#78786C] hover:text-[#2C2C24] px-2 py-1 rounded-full bg-[#F0EBE5]"
+                  className="text-xs font-bold text-[#78786C] hover:text-[#2C2C24] px-2.5 py-1 rounded-full bg-[#F0EBE5]"
                 >
                   Close ✕
                 </button>
@@ -312,11 +347,11 @@ export const Navigation = () => {
                 </div>
               </div>
 
-              {/* Grid of All 10 Application Pages */}
-              <div className="grid grid-cols-1 gap-1.5 max-h-[60vh] overflow-y-auto pr-1">
+              {/* 4 Clean Main Modules */}
+              <div className="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto pr-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeTab === item.id;
+                  const active = isTabActive(item.id);
                   return (
                     <button
                       key={item.id}
@@ -325,61 +360,61 @@ export const Navigation = () => {
                         setActiveTab(item.id);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition text-left cursor-pointer ${
-                        isActive
+                      className={`flex items-center justify-between p-3.5 rounded-2xl text-xs font-bold transition text-left cursor-pointer ${
+                        active
                           ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft'
                           : 'bg-[#F0EBE5]/50 text-[#2C2C24] hover:bg-[#E6DCCD] border border-[#DED8CF]/40'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-xl shrink-0 ${isActive ? 'bg-white/20 text-white' : 'bg-[#5D7052]/10 text-[#5D7052]'}`}>
-                          <Icon className="w-4 h-4" />
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl shrink-0 ${active ? 'bg-white/20 text-white' : 'bg-[#5D7052]/10 text-[#5D7052]'}`}>
+                          <Icon className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold">{item.label}</span>
+                            <span className="text-sm font-bold">{item.label}</span>
                             {item.badge && (
                               <span className={`px-1.5 py-0.2 text-[8px] font-extrabold rounded-full ${
-                                isActive ? 'bg-white/30 text-white' : 'bg-[#C18C5D]/20 text-[#C18C5D]'
+                                active ? 'bg-white/30 text-white' : 'bg-[#C18C5D]/20 text-[#C18C5D]'
                               }`}>
                                 {item.badge}
                               </span>
                             )}
                           </div>
-                          <p className={`text-[10px] font-normal ${isActive ? 'text-[#FEFEFA]/80' : 'text-[#78786C]'}`}>
+                          <p className={`text-[10px] font-normal mt-0.5 ${active ? 'text-[#FEFEFA]/80' : 'text-[#78786C]'}`}>
                             {item.desc}
                           </p>
                         </div>
                       </div>
-                      <ChevronRight className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#78786C]'}`} />
+                      <ChevronRight className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-[#78786C]'}`} />
                     </button>
                   );
                 })}
               </div>
 
-              {/* Farm Selector & Live GPS Quick Action inside mobile menu */}
-              {farms.length > 0 && (
-                <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex items-center justify-between text-xs">
-                  <span className="text-[#78786C] font-semibold">Active Farm Parcel:</span>
-                  <div className="relative">
-                    <span className="font-bold text-[#5D7052] underline cursor-pointer">
-                      {selectedFarm ? selectedFarm.name : 'Select Farm'} ▾
-                    </span>
-                    <select
-                      value={selectedFarm?.id || ''}
-                      onChange={(e) => {
-                        const f = farms.find(farm => farm.id === e.target.value);
-                        if (f) setSelectedFarm(f);
-                      }}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full"
-                    >
-                      {farms.map(f => (
-                        <option key={f.id} value={f.id}>{f.name} ({f.location})</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
+              {/* Quick Farm & Account Action inside mobile menu */}
+              <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex items-center justify-between text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('home');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-[#5D7052] hover:underline"
+                >
+                  🌐 Public Home
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-[#5D7052] hover:underline"
+                >
+                  👤 {isAuthenticated ? 'Farmer Profile' : 'Sign In / Account'}
+                </button>
+              </div>
 
             </div>
           )}

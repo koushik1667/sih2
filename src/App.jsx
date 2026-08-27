@@ -7,14 +7,10 @@ import { Navigation } from './components/Navigation';
 import { VisitorHeader } from './components/VisitorHeader';
 import { PublicHome } from './pages/PublicHome';
 import { CommandCenter } from './pages/CommandCenter';
-import { SatelliteSRM } from './pages/SatelliteSRM';
-import { SoilPrecision } from './pages/SoilPrecision';
-import { NationalAnalytics } from './pages/NationalAnalytics';
-import { AIAgronomist } from './pages/AIAgronomist';
-import { FarmManagement } from './pages/FarmManagement';
-import { WeatherRadar } from './pages/WeatherRadar';
+import { LandAndSatellite } from './pages/LandAndSatellite';
+import { SoilAndWeather } from './pages/SoilAndWeather';
+import { FarmHubAndAI } from './pages/FarmHubAndAI';
 import { AuthPage } from './pages/AuthPage';
-import { LiveLandScannerMap } from './pages/LiveLandScannerMap';
 import { LiveTranslationHUD } from './components/LiveTranslationHUD';
 import { LiveLocationTracker } from './components/LiveLocationTracker';
 import { CookieConsent } from './components/CookieConsent';
@@ -120,27 +116,27 @@ const MainContent = () => {
     );
   }
 
-  // 3. Authenticated User Workspace
+  // 3. Authenticated User Workspace with 4 Core Consolidated Modules
   const renderPage = () => {
     switch (activeTab) {
       case 'home':
         return <PublicHome onNavigateToAuth={() => setActiveTab('login')} />;
       case 'command_center':
+      case 'dashboard':
         return <CommandCenter />;
+      case 'land_satellite':
       case 'land_scanner':
-        return <LiveLandScannerMap />;
       case 'satellite_srm':
-        return <SatelliteSRM />;
-      case 'soil_precision':
-        return <SoilPrecision />;
-      case 'national_analytics':
-        return <NationalAnalytics />;
-      case 'ai_agronomist':
-        return <AIAgronomist />;
-      case 'farms':
-        return <FarmManagement />;
+        return <LandAndSatellite />;
+      case 'soil_weather':
       case 'weather':
-        return <WeatherRadar />;
+      case 'soil_precision':
+        return <SoilAndWeather />;
+      case 'farm_hub':
+      case 'ai_agronomist':
+      case 'farms':
+      case 'national_analytics':
+        return <FarmHubAndAI />;
       case 'login':
       case 'auth':
       case 'account_auth':
