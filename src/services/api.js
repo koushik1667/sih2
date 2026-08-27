@@ -635,14 +635,14 @@ export const api = {
       if (res && res.translated_text) return res;
     } catch {}
     
-    // Direct Client Fallback (Google Translate GTX)
+    // Direct Client Fallback (Google Translate clients5 Neural MT)
     try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source_lang}&tl=${target_lang}&dt=t&q=${encodeURIComponent(text)}`;
+      const url = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${source_lang}&tl=${target_lang}&q=${encodeURIComponent(text)}`;
       const resp = await fetch(url);
       const data = await resp.json();
-      if (Array.isArray(data) && Array.isArray(data[0])) {
-        const trans = data[0].map(item => item[0]).join('');
-        return { status: 'success', translated_text: trans };
+      const trans = Array.isArray(data) ? (typeof data[0] === 'string' ? data[0] : (Array.isArray(data[0]) ? data[0][0] : null)) : null;
+      if (trans && typeof trans === 'string') {
+        return { status: 'success', translated_text: trans.trim() };
       }
     } catch {}
     return { status: 'fallback', translated_text: text };
@@ -665,13 +665,11 @@ export const api = {
     try {
       const promises = texts.map(async (t) => {
         try {
-          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source_lang}&tl=${target_lang}&dt=t&q=${encodeURIComponent(t)}`;
+          const url = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${source_lang}&tl=${target_lang}&q=${encodeURIComponent(t)}`;
           const resp = await fetch(url);
           const data = await resp.json();
-          if (Array.isArray(data) && Array.isArray(data[0])) {
-            return data[0].map(item => item[0]).join('') || t;
-          }
-          return t;
+          const trans = Array.isArray(data) ? (typeof data[0] === 'string' ? data[0] : (Array.isArray(data[0]) ? data[0][0] : null)) : null;
+          return (trans && typeof trans === 'string') ? trans.trim() : t;
         } catch {
           return t;
         }

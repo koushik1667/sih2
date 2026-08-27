@@ -990,30 +990,40 @@ async function translateSingleText(text: string, fromLang = "auto", toLang = "te
     return dict[trimmed];
   }
 
-  // 2. Query High-Speed Google Neural MT (GTX)
+  // 2. Query High-Speed Google Neural MT (clients5 dict-chrome-ex)
   try {
     const sl = fromLang === "en" ? "en" : fromLang || "auto";
     const tl = toLang;
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(trimmed)}`;
+    const url = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${sl}&tl=${tl}&q=${encodeURIComponent(trimmed)}`;
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" }
     });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && Array.isArray(data[0])) {
-        const translated = data[0].map((item: any) => item[0]).join("");
-        if (translated) {
-          SERVER_TRANSLATION_CACHE.set(cacheKey, translated);
-          if (SERVER_TRANSLATION_CACHE.size > 10000) {
-            const first = SERVER_TRANSLATION_CACHE.keys().next().value;
-            if (first) SERVER_TRANSLATION_CACHE.delete(first);
-          }
-          return translated;
+      const translated = Array.isArray(data) ? (typeof data[0] === "string" ? data[0] : (Array.isArray(data[0]) ? data[0][0] : null)) : null;
+      if (translated && typeof translated === "string" && translated.trim()) {
+        SERVER_TRANSLATION_CACHE.set(cacheKey, translated.trim());
+        if (SERVER_TRANSLATION_CACHE.size > 10000) {
+          const first = SERVER_TRANSLATION_CACHE.keys().next().value;
+          if (first) SERVER_TRANSLATION_CACHE.delete(first);
         }
+        return translated.trim();
       }
     }
   } catch (err: any) {
-    console.warn(`[Translation Service] Google MT error for "${trimmed.substring(0, 30)}...":`, err.message);
+    // Fallback to MyMemory
+    try {
+      const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${fromLang || 'en'}|${toLang}`;
+      const mmRes = await fetch(mmUrl);
+      if (mmRes.ok) {
+        const json = await mmRes.json() as any;
+        const mmTrans = json.responseData?.translatedText;
+        if (mmTrans && !mmTrans.startsWith("MYMEMORY WARNING:") && mmTrans !== trimmed) {
+          SERVER_TRANSLATION_CACHE.set(cacheKey, mmTrans);
+          return mmTrans;
+        }
+      }
+    } catch {}
   }
 
   return trimmed;
