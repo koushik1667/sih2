@@ -44,54 +44,7 @@
     </style>
   </head>
   <body class="bg-[#FDFCF8] text-[#2C2C24] font-sans antialiased selection:bg-[#5D7052]/20 selection:text-[#5D7052]">
-    <div id="google_translate_element" style="display: none !important; visibility: hidden !important; position: absolute; top: -9999px;"></div>
     <div id="root"></div>
-    <script type="text/javascript">
-      // Clean stale translation cookies if English is chosen
-      (function() {
-        try {
-          var savedLang = localStorage.getItem('agri_lang');
-          if (!savedLang || savedLang === 'en') {
-            var domains = ['', window.location.hostname, '.' + window.location.hostname, 'localhost', '.localhost'];
-            var paths = ['/', '', '/en', '/en/en'];
-            domains.forEach(function(d) {
-              paths.forEach(function(p) {
-                var dStr = d ? 'domain=' + d + '; ' : '';
-                var pStr = p ? 'path=' + p + '; ' : '';
-                document.cookie = 'googtrans=; ' + dStr + pStr + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-              });
-            });
-          }
-        } catch (_) {}
-      })();
-
-      function googleTranslateElementInit() {
-        if (window.google && window.google.translate) {
-          new window.google.translate.TranslateElement({
-            pageLanguage: 'en',
-            includedLanguages: 'hi,te,ta,kn,mr,bn,gu,pa,ml,or,as,es,fr,de',
-            autoDisplay: false
-          }, 'google_translate_element');
-        }
-      }
-
-      // Automatically hide Google Translate Top Banner iframe as soon as created
-      const suppressGoogleBanner = () => {
-        const frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame, iframe.skiptranslate, #goog-gt-tt');
-        frames.forEach(f => {
-          f.style.display = 'none';
-          f.style.visibility = 'hidden';
-          f.style.height = '0px';
-          f.style.position = 'absolute';
-          f.style.top = '-9999px';
-        });
-        if (document.body && document.body.style.top !== '0px') {
-          document.body.style.top = '0px';
-        }
-      };
-      setInterval(suppressGoogleBanner, 80);
-    </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

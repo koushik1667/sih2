@@ -883,75 +883,7 @@ export const LanguageProvider = ({ children }) => {
   });
   const [isLiveActive, setIsLiveActive] = useState(true);
 
-  const applyGoogleTranslate = (targetLang) => {
-    try {
-      if (targetLang === 'en') {
-        // Complete erasure of all googtrans cookies across all potential domains and paths
-        const domains = [
-          '',
-          window.location.hostname,
-          `.${window.location.hostname}`,
-          'localhost',
-          '.localhost'
-        ];
-        const paths = ['/', '', '/en', '/en/en'];
-        domains.forEach(d => {
-          paths.forEach(p => {
-            const dStr = d ? `domain=${d}; ` : '';
-            const pStr = p ? `path=${p}; ` : '';
-            document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-          });
-        });
-
-        // Trigger Google Translate Reset
-        const select = document.querySelector('.goog-te-combo');
-        if (select) {
-          select.selectedIndex = 0;
-          select.value = '';
-          select.dispatchEvent(new Event('change'));
-        }
-
-        // Trigger Show Original button if iframe exists
-        try {
-          const iframe = document.querySelector('iframe.goog-te-banner-frame');
-          if (iframe && iframe.contentDocument) {
-            const btn = iframe.contentDocument.querySelector('.goog-te-button button, #\\:1\\.restore');
-            if (btn) btn.click();
-          }
-        } catch (_) {}
-
-        // Remove translated HTML classes
-        if (document.documentElement) {
-          document.documentElement.classList.remove('translated-ltr', 'translated-rtl');
-        }
-
-        // Remove injected Google Translate font wrappers if present
-        document.querySelectorAll('font').forEach(font => {
-          if (font.parentNode) {
-            font.parentNode.replaceChild(document.createTextNode(font.textContent || ''), font);
-          }
-        });
-      } else {
-        const cookieVal = `/en/${targetLang}`;
-        document.cookie = `googtrans=${cookieVal}; path=/;`;
-        if (window.location.hostname) {
-          document.cookie = `googtrans=${cookieVal}; domain=.${window.location.hostname}; path=/;`;
-          document.cookie = `googtrans=${cookieVal}; domain=${window.location.hostname}; path=/;`;
-        }
-
-        const select = document.querySelector('.goog-te-combo');
-        if (select) {
-          select.value = targetLang;
-          select.dispatchEvent(new Event('change'));
-        }
-      }
-    } catch (e) {
-      // silent
-    }
-  };
-
   const resetToEnglish = () => {
-    localStorage.removeItem('agri_lang');
     localStorage.setItem('agri_lang', 'en');
     setLangState('en');
 
@@ -985,9 +917,6 @@ export const LanguageProvider = ({ children }) => {
     setLangState(newLang);
     localStorage.setItem('agri_lang', newLang);
 
-    // Apply Universal Full-Page Neural Translation
-    applyGoogleTranslate(newLang);
-
     if (isLiveActive) {
       liveTranslatorEngine.start(newLang);
     }
@@ -996,10 +925,8 @@ export const LanguageProvider = ({ children }) => {
   // Sync translation engine on mount & lang change
   React.useEffect(() => {
     if (lang === 'en') {
-      applyGoogleTranslate('en');
       liveTranslatorEngine.stop();
     } else {
-      applyGoogleTranslate(lang);
       if (isLiveActive) {
         liveTranslatorEngine.start(lang);
       } else {
