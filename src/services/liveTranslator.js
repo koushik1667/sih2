@@ -238,25 +238,30 @@ function updateLiveStats() {
 /**
  * Checks if a DOM node should be skipped for translation
  */
+/**
+ * Checks if a DOM node should be skipped for translation
+ */
 function shouldSkipNode(node) {
   if (!node) return true;
   const parent = node.parentElement;
   if (!parent) return true;
 
   const tag = parent.tagName;
-  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME', 'CANVAS', 'INPUT', 'TEXTAREA'].includes(tag)) {
+  // Skip code, script, SVG and styling tags
+  if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'SVG', 'PATH', 'IFRAME', 'CANVAS'].includes(tag)) {
     return true;
   }
 
+  // Only skip if the parent itself explicitly declares notranslate (e.g. language picker options or brand name)
   if (
     parent.classList.contains('notranslate') ||
     parent.getAttribute('translate') === 'no' ||
-    parent.hasAttribute('data-no-translate') ||
-    parent.closest?.('.notranslate') ||
-    parent.closest?.('[translate="no"]') ||
-    parent.closest?.('[data-no-translate]')
+    parent.hasAttribute('data-no-translate')
   ) {
-    return true;
+    // If it's the brand name or language dropdown option, skip it
+    if (tag === 'OPTION' || parent.classList.contains('brand-name')) {
+      return true;
+    }
   }
 
   return false;
@@ -275,7 +280,6 @@ export function lookupFastTranslation(text, targetLang) {
 
   // 1. If target is English, perform high-precision reverse lookup
   if (targetLang === 'en') {
-    // 1a. Direct Reverse Map
     for (const [enKey, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
       if (enKey.toLowerCase() === trimmed.toLowerCase()) return enKey;
       for (const val of Object.values(map)) {
@@ -285,7 +289,6 @@ export function lookupFastTranslation(text, targetLang) {
       }
     }
 
-    // 1b. Reverse Tokenized Substring Replacer
     let reverseReplaced = trimmed;
     let hasRevReplacement = false;
     for (const [enKey, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
@@ -393,7 +396,7 @@ function translateTextNode(node, targetLang) {
   if (!raw || !raw.trim()) return;
 
   // Stash original English text on node if first time seeing English
-  if (!node.__agriOriginalText && /^[a-zA-Z0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹]+$/.test(raw.trim())) {
+  if (!node.__agriOriginalText && /^[a-zA-Z0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹+\-×÷=]+$/.test(raw.trim())) {
     node.__agriOriginalText = raw;
   }
 
@@ -430,9 +433,9 @@ function translateTextNode(node, targetLang) {
       translatedNodesCount++;
     }
   } else {
-    // 2. Queue for Batched Asynchronous Translation
+    // 2. Queue for Batched Asynchronous Live Neural Translation
     const trimmed = origText.trim();
-    if (trimmed.length > 2 && trimmed.length < 300) {
+    if (trimmed.length > 1 && trimmed.length < 500) {
       const leading = origText.match(/^\s*/)?.[0] || '';
       const trailing = origText.match(/\s*$/)?.[0] || '';
 
@@ -447,27 +450,19 @@ function translateTextNode(node, targetLang) {
       if (batchTimeout) clearTimeout(batchTimeout);
       batchTimeout = setTimeout(() => {
         flushBatchQueue(targetLang);
-      }, 60);
+      }, 40);
     }
   }
 }
 
 /**
- * Deeply translates an entire DOM Subtree inside a single animation frame
+ * Deeply translates an entire DOM Subtree and placeholders
  */
 export function translateSubtree(rootNode, targetLang) {
   if (!rootNode) return;
 
   requestAnimationFrame(() => {
-    // If switching to English, unwrap any residual font tags
-    if (targetLang === 'en') {
-      rootNode.querySelectorAll?.('font').forEach(font => {
-        if (font.parentNode) {
-          font.parentNode.replaceChild(document.createTextNode(font.textContent || ''), font);
-        }
-      });
-    }
-
+    // 1. Translate all text nodes
     const walker = document.createTreeWalker(
       rootNode,
       NodeFilter.SHOW_TEXT,
@@ -485,6 +480,36 @@ export function translateSubtree(rootNode, targetLang) {
       translateTextNode(currentNode, targetLang);
       currentNode = walker.nextNode();
     }
+
+    // 2. Translate Input Placeholders & Button Tooltips
+    try {
+      const inputs = rootNode.querySelectorAll?.('input[placeholder], textarea[placeholder]');
+      inputs?.forEach(inp => {
+        const origPh = inp.__agriOrigPlaceholder || inp.getAttribute('placeholder');
+        if (!inp.__agriOrigPlaceholder && origPh) {
+          inp.__agriOrigPlaceholder = origPh;
+        }
+        const textToUse = inp.__agriOrigPlaceholder || origPh;
+        if (textToUse) {
+          if (targetLang === 'en') {
+            inp.setAttribute('placeholder', textToUse);
+          } else {
+            const trans = lookupFastTranslation(textToUse, targetLang);
+            if (trans) {
+              inp.setAttribute('placeholder', trans);
+            } else {
+              api.translate(textToUse, 'en', targetLang).then(res => {
+                if (res && res.translated_text) {
+                  inp.setAttribute('placeholder', res.translated_text);
+                  dynamicTranslationCache.set(`${targetLang}:${textToUse.trim()}`, res.translated_text);
+                }
+              }).catch(() => {});
+            }
+          }
+        }
+      });
+    } catch {}
+
     updateLiveStats();
   });
 }

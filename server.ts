@@ -969,12 +969,12 @@ app.get("/api/translate/languages", (req, res) => {
 
 const SERVER_TRANSLATION_CACHE = new Map<string, string>();
 
-async function translateSingleText(text: string, fromLang: string, toLang: string): Promise<string> {
+async function translateSingleText(text: string, fromLang = "auto", toLang = "te"): Promise<string> {
   if (!text || typeof text !== "string" || !text.trim() || toLang === "en" || fromLang === toLang) {
     return text;
   }
   const trimmed = text.trim();
-  if (/^[0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•]+$/.test(trimmed)) {
+  if (/^[0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹+\-×÷=]+$/.test(trimmed)) {
     return text;
   }
 
@@ -990,51 +990,71 @@ async function translateSingleText(text: string, fromLang: string, toLang: strin
     return dict[trimmed];
   }
 
-  // 2. Query MyMemory Neural Machine Translation
+  // 2. Query High-Speed Google Neural MT (GTX)
   try {
-    const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${fromLang}|${toLang}`;
-    const mmRes = await fetch(mmUrl, {
-      headers: { "User-Agent": "AgriSphere-Translation/2.0" }
+    const sl = fromLang === "en" ? "en" : fromLang || "auto";
+    const tl = toLang;
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(trimmed)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" }
     });
-    if (mmRes.ok) {
-      const json = (await mmRes.json()) as any;
-      const translated = json.responseData?.translatedText;
-      if (translated && !translated.startsWith("MYMEMORY WARNING:") && translated !== trimmed) {
-        SERVER_TRANSLATION_CACHE.set(cacheKey, translated);
-        return translated;
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && Array.isArray(data[0])) {
+        const translated = data[0].map((item: any) => item[0]).join("");
+        if (translated) {
+          SERVER_TRANSLATION_CACHE.set(cacheKey, translated);
+          if (SERVER_TRANSLATION_CACHE.size > 10000) {
+            const first = SERVER_TRANSLATION_CACHE.keys().next().value;
+            if (first) SERVER_TRANSLATION_CACHE.delete(first);
+          }
+          return translated;
+        }
       }
     }
   } catch (err: any) {
-    console.error("[MyMemory Translate Error]", err.message);
+    console.warn(`[Translation Service] Google MT error for "${trimmed.substring(0, 30)}...":`, err.message);
   }
 
   return trimmed;
 }
 
-app.post("/api/translate", async (req, res) => {
-  const { text, from_lang = "en", to_lang = "hi" } = req.body;
-  const translated = await translateSingleText(text, from_lang, to_lang);
+app.post(["/api/translate"], async (req, res) => {
+  const { text, from_lang, source_lang = "auto", to_lang, target_lang = "te" } = req.body;
+  const sLang = from_lang || source_lang || "auto";
+  const tLang = to_lang || target_lang || "te";
+
+  if (!text) return res.status(400).json({ error: "Missing text" });
+  const translated = await translateSingleText(text, sLang, tLang);
   res.json({
     original_text: text,
-    from_lang,
-    to_lang,
+    from_lang: sLang,
+    to_lang: tLang,
+    source_lang: sLang,
+    target_lang: tLang,
     translated_text: translated
   });
 });
 
-app.post("/api/translate/batch", async (req, res) => {
-  const { texts = [], from_lang = "en", to_lang = "hi" } = req.body;
-  if (!Array.isArray(texts) || texts.length === 0 || to_lang === "en") {
-    return res.json({ from_lang, to_lang, translated_texts: texts });
+app.post(["/api/translate/batch", "/api/translate-batch"], async (req, res) => {
+  const { texts = [], from_lang, source_lang = "auto", to_lang, target_lang = "te" } = req.body;
+  const sLang = from_lang || source_lang || "auto";
+  const tLang = to_lang || target_lang || "te";
+
+  if (!Array.isArray(texts) || texts.length === 0 || tLang === "en") {
+    return res.json({ from_lang: sLang, to_lang: tLang, translated_texts: texts });
   }
 
   const results = await Promise.all(
-    texts.map((t: string) => translateSingleText(t, from_lang, to_lang))
+    texts.slice(0, 60).map((t: string) => translateSingleText(t, sLang, tLang))
   );
 
   res.json({
-    from_lang,
-    to_lang,
+    from_lang: sLang,
+    to_lang: tLang,
+    source_lang: sLang,
+    target_lang: tLang,
+    count: results.length,
     translated_texts: results
   });
 });
@@ -2109,16 +2129,6 @@ app.get("/api/weather/news", (req, res) => {
     total_articles: specificNews.length,
     articles: specificNews
   });
-});
-
-app.delete("/api/notifications/:id", (req, res) => {
-  notificationHistory = notificationHistory.filter(n => n.id !== req.params.id);
-  res.json({ success: true, id: req.params.id });
-});
-
-app.delete("/api/notifications/clear-all", (req, res) => {
-  notificationHistory = [];
-  res.json({ success: true, cleared: true });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

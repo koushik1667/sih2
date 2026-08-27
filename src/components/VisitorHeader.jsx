@@ -12,16 +12,15 @@ export const VisitorHeader = ({ activeTab, onSelectTab, onQuickDemo }) => {
           
           {/* Logo & Brand */}
           <div 
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer group notranslate"
-            translate="no"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             onClick={() => onSelectTab('home')}
           >
             <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#5D7052] text-[#F3F4F1] shadow-soft group-hover:scale-105 group-hover:bg-[#4D5E44] transition-all shrink-0">
               <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-base sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none notranslate" translate="no">
+              <div className="flex items-center gap-1.5 sm:gap-2 notranslate" translate="no">
+                <span className="text-base sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none">
                   Sufala <span className="text-[#5D7052] italic font-normal">AI</span>
                 </span>
                 <span className="px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase rounded-full bg-[#5D7052]/10 text-[#5D7052] border border-[#5D7052]/20">

@@ -886,29 +886,11 @@ export const LanguageProvider = ({ children }) => {
   const resetToEnglish = () => {
     localStorage.setItem('agri_lang', 'en');
     setLangState('en');
-
-    const domains = [
-      '',
-      window.location.hostname,
-      `.${window.location.hostname}`,
-      'localhost',
-      '.localhost'
-    ];
-    const paths = ['/', '', '/en', '/en/en'];
-    domains.forEach(d => {
-      paths.forEach(p => {
-        const dStr = d ? `domain=${d}; ` : '';
-        const pStr = p ? `path=${p}; ` : '';
-        document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-      });
-    });
-
+    document.documentElement.lang = 'en';
     liveTranslatorEngine.stop();
-    window.location.reload();
   };
 
   const setLang = (newLang) => {
-    const prevLang = lang;
     if (newLang === 'en') {
       resetToEnglish();
       return;
@@ -916,27 +898,19 @@ export const LanguageProvider = ({ children }) => {
 
     setLangState(newLang);
     localStorage.setItem('agri_lang', newLang);
-
-    if (isLiveActive) {
-      liveTranslatorEngine.start(newLang);
-    }
+    document.documentElement.lang = newLang;
+    liveTranslatorEngine.start(newLang);
   };
 
   // Sync translation engine on mount & lang change
   React.useEffect(() => {
+    document.documentElement.lang = lang;
     if (lang === 'en') {
       liveTranslatorEngine.stop();
     } else {
-      if (isLiveActive) {
-        liveTranslatorEngine.start(lang);
-      } else {
-        liveTranslatorEngine.stop();
-      }
+      liveTranslatorEngine.start(lang);
     }
-    return () => {
-      liveTranslatorEngine.stop();
-    };
-  }, [lang, isLiveActive]);
+  }, [lang]);
 
   const t = (key) => {
     return TRANSLATIONS[lang]?.[key] || TRANSLATIONS.en?.[key] || key;

@@ -623,17 +623,65 @@ export const api = {
     return request(`/api/weather/news?${params.toString()}`);
   },
 
-  // Argos Machine Translation
-  translate: (text, from_lang = 'en', to_lang = 'hi') => request('/api/translate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, from_lang, to_lang }),
-  }),
-  translateBatch: (texts, from_lang = 'en', to_lang = 'hi') => request('/api/translate/batch', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ texts, from_lang, to_lang }),
-  }),
+  // Live Neural Translation (Backend + Client GTX fallback)
+  translate: async (text, source_lang = 'auto', target_lang = 'te') => {
+    if (!text || !text.trim() || target_lang === 'en') return { status: 'success', translated_text: text };
+    try {
+      const res = await request('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, source_lang, target_lang }),
+      });
+      if (res && res.translated_text) return res;
+    } catch {}
+    
+    // Direct Client Fallback (Google Translate GTX)
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source_lang}&tl=${target_lang}&dt=t&q=${encodeURIComponent(text)}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (Array.isArray(data) && Array.isArray(data[0])) {
+        const trans = data[0].map(item => item[0]).join('');
+        return { status: 'success', translated_text: trans };
+      }
+    } catch {}
+    return { status: 'fallback', translated_text: text };
+  },
+
+  translateBatch: async (texts, source_lang = 'auto', target_lang = 'te') => {
+    if (!Array.isArray(texts) || texts.length === 0 || target_lang === 'en') {
+      return { status: 'success', translated_texts: texts };
+    }
+    try {
+      const res = await request('/api/translate-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texts, source_lang, target_lang }),
+      });
+      if (res && Array.isArray(res.translated_texts)) return res;
+    } catch {}
+
+    // Fallback batch processor
+    try {
+      const promises = texts.map(async (t) => {
+        try {
+          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source_lang}&tl=${target_lang}&dt=t&q=${encodeURIComponent(t)}`;
+          const resp = await fetch(url);
+          const data = await resp.json();
+          if (Array.isArray(data) && Array.isArray(data[0])) {
+            return data[0].map(item => item[0]).join('') || t;
+          }
+          return t;
+        } catch {
+          return t;
+        }
+      });
+      const translated_texts = await Promise.all(promises);
+      return { status: 'success', translated_texts };
+    } catch {
+      return { status: 'fallback', translated_texts: texts };
+    }
+  },
   getTranslationLanguages: () => request('/api/translate/languages'),
 
   // Firebase Cloud Messaging (FCM HTTP v1) & Notification Hub
