@@ -47,6 +47,24 @@
     <div id="google_translate_element" style="display: none !important; visibility: hidden !important; position: absolute; top: -9999px;"></div>
     <div id="root"></div>
     <script type="text/javascript">
+      // Clean stale translation cookies if English is chosen
+      (function() {
+        try {
+          var savedLang = localStorage.getItem('agri_lang');
+          if (!savedLang || savedLang === 'en') {
+            var domains = ['', window.location.hostname, '.' + window.location.hostname, 'localhost', '.localhost'];
+            var paths = ['/', '', '/en', '/en/en'];
+            domains.forEach(function(d) {
+              paths.forEach(function(p) {
+                var dStr = d ? 'domain=' + d + '; ' : '';
+                var pStr = p ? 'path=' + p + '; ' : '';
+                document.cookie = 'googtrans=; ' + dStr + pStr + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+              });
+            });
+          }
+        } catch (_) {}
+      })();
+
       function googleTranslateElementInit() {
         if (window.google && window.google.translate) {
           new window.google.translate.TranslateElement({

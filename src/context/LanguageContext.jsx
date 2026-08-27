@@ -886,22 +886,27 @@ export const LanguageProvider = ({ children }) => {
   const applyGoogleTranslate = (targetLang) => {
     try {
       if (targetLang === 'en') {
-        // Clear all googtrans cookies across all domains
+        // Complete erasure of all googtrans cookies across all potential domains and paths
         const domains = [
           '',
-          `.${window.location.hostname}`,
           window.location.hostname,
-          'localhost'
+          `.${window.location.hostname}`,
+          'localhost',
+          '.localhost'
         ];
+        const paths = ['/', '', '/en', '/en/en'];
         domains.forEach(d => {
-          const domainStr = d ? `domain=${d}; ` : '';
-          document.cookie = `googtrans=; ${domainStr}path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-          document.cookie = `googtrans=/en/en; ${domainStr}path=/;`;
+          paths.forEach(p => {
+            const dStr = d ? `domain=${d}; ` : '';
+            const pStr = p ? `path=${p}; ` : '';
+            document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+          });
         });
 
         // Trigger Google Translate Reset
         const select = document.querySelector('.goog-te-combo');
         if (select) {
+          select.selectedIndex = 0;
           select.value = '';
           select.dispatchEvent(new Event('change'));
         }
@@ -959,12 +964,14 @@ export const LanguageProvider = ({ children }) => {
         'localhost',
         '.localhost'
       ];
+      const paths = ['/', '', '/en', '/en/en'];
       domains.forEach(d => {
-        const dStr = d ? `domain=${d}; ` : '';
-        document.cookie = `googtrans=; ${dStr}path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-        document.cookie = `googtrans=; ${dStr}path=/;`;
+        paths.forEach(p => {
+          const dStr = d ? `domain=${d}; ` : '';
+          const pStr = p ? `path=${p}; ` : '';
+          document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+        });
       });
-      document.cookie = "googtrans=/en/en; path=/;";
 
       liveTranslatorEngine.stop();
 
