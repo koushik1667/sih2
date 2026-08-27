@@ -19,6 +19,7 @@ import { useLanguage, SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 import { historyService } from '../services/historyService';
+import { nativeAudioSpeaker } from '../utils/nativeAudioSpeaker';
 
 const NATIVE_FALLBACK_ADVISORIES = {
   te: "మీ వ్యవసాయ ప్రశ్నకు: సమతుల్య ఎన్పీకే ఎరువులు (NPK 4:2:1 నిష్పత్తి), పచ్చిరొట్ట ఎరువుల వినియోగం, నేల పరీక్షల ఆధారిత పోషణ మరియు సకాలంలో పురుగుల నివారణ చర్యలు చేపట్టండి.",
@@ -278,65 +279,29 @@ export const MultilingualVoiceAgent = ({ isOpen, onClose }) => {
   };
 
   const speakText = (textToSpeak) => {
-    if (!synthRef.current || !textToSpeak) return;
+    if (!textToSpeak) return;
 
-    synthRef.current.cancel();
-
-    // Clean text and replace currency symbols with native phonetic words for fluent pronunciation
-    const currencyWord = CURRENCY_PRONUNCIATIONS[lang] || " rupees ";
-    let cleanText = textToSpeak
-      .replace(/₹/g, currencyWord)
-      .replace(/[*#_`~]/g, '')
-      .replace(/\[.*?\]\(.*?\)/g, '') // remove markdown links
-      .trim();
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    const targetSpeechLang = SPEECH_LANG_CODES[lang] || 'en-IN';
-    utterance.lang = targetSpeechLang;
-    utterance.rate = 0.92; // slightly slower for maximum natural clarity
-    utterance.pitch = 1.0;
-
-    // Pick best matching voice available in client browser
-    const voices = synthRef.current.getVoices();
-    const matchingVoice = voices.find(v => {
-      const vLang = (v.lang || '').toLowerCase();
-      const vName = (v.name || '').toLowerCase();
-      const lCode = lang.toLowerCase();
-      return (
-        vLang.startsWith(lCode) ||
-        vLang.includes(targetSpeechLang.toLowerCase()) ||
-        vName.includes(lCode) ||
-        (lCode === 'te' && (vName.includes('telugu') || vLang.includes('te'))) ||
-        (lCode === 'hi' && (vName.includes('hindi') || vLang.includes('hi'))) ||
-        (lCode === 'kn' && (vName.includes('kannada') || vLang.includes('kn'))) ||
-        (lCode === 'ta' && (vName.includes('tamil') || vLang.includes('ta'))) ||
-        (lCode === 'mr' && (vName.includes('marathi') || vLang.includes('mr'))) ||
-        (lCode === 'bn' && (vName.includes('bengali') || vLang.includes('bn'))) ||
-        (lCode === 'gu' && (vName.includes('gujarati') || vLang.includes('gu'))) ||
-        (lCode === 'pa' && (vName.includes('punjabi') || vLang.includes('pa'))) ||
-        (lCode === 'ml' && (vName.includes('malayalam') || vLang.includes('ml')))
-      );
-    });
-
-    if (matchingVoice) {
-      utterance.voice = matchingVoice;
-    }
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    synthRef.current.speak(utterance);
+    // Use high-fidelity neural audio speaker to guarantee authentic native accent (Telugu, Hindi, Kannada, Tamil, etc.)
+    nativeAudioSpeaker.speak(
+      textToSpeak,
+      lang,
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
+    );
   };
 
   const stopSpeaking = () => {
+    nativeAudioSpeaker.stop();
     if (synthRef.current) {
       synthRef.current.cancel();
-      setIsSpeaking(false);
     }
+    setIsSpeaking(false);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    nativeAudioSpeaker.stop();
+    return null;
+  }
 
   const currentLangObj = SUPPORTED_LANGUAGES.find(l => l.code === lang) || SUPPORTED_LANGUAGES[0];
   const samplePrompts = SAMPLE_VOICE_PROMPTS[lang] || SAMPLE_VOICE_PROMPTS.en;
