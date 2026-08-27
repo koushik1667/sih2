@@ -202,6 +202,11 @@ try {
   if (cached) {
     const parsed = JSON.parse(cached);
     for (const [k, v] of Object.entries(parsed)) {
+      const [langCode] = k.split(':');
+      // If target is Indian regional script but value still has dangling English words, purge it
+      if (['te', 'hi', 'ta', 'kn', 'mr', 'bn', 'pa', 'gu', 'ml', 'or'].includes(langCode) && /[a-zA-Z]{3,}/.test(v)) {
+        continue;
+      }
       dynamicTranslationCache.set(k, v);
     }
   }
@@ -324,19 +329,17 @@ export function lookupFastTranslation(text, targetLang) {
     return dynamicTranslationCache.get(cacheKey);
   }
 
-  // 5. Tokenized Substring Replacer (e.g. "8.849 Acres", "Wheat (8.5 Q/Ac)", "Soil Health: 78")
-  let tokenReplaced = trimmed;
-  let hasReplacement = false;
+  // 5. Unit / Metric Suffix Replacer (Only for numeric strings like "8.849 Acres", "24.5 °C", "92 %")
   for (const [key, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
-    if (map[targetLang] && tokenReplaced.includes(key)) {
-      tokenReplaced = tokenReplaced.split(key).join(map[targetLang]);
-      hasReplacement = true;
+    if (map[targetLang] && trimmed.includes(key)) {
+      const remainder = trimmed.replace(key, '').trim();
+      // Only replace if remainder is strictly numbers and punctuation
+      if (!remainder || /^[0-9\s.,:%()°℃℉\/\\|•₹+\-×÷=]+$/.test(remainder)) {
+        const result = trimmed.split(key).join(map[targetLang]);
+        dynamicTranslationCache.set(cacheKey, result);
+        return result;
+      }
     }
-  }
-
-  if (hasReplacement) {
-    dynamicTranslationCache.set(cacheKey, tokenReplaced);
-    return tokenReplaced;
   }
 
   return null;
@@ -395,29 +398,18 @@ function translateTextNode(node, targetLang) {
   const raw = node.nodeValue;
   if (!raw || !raw.trim()) return;
 
-  // Stash original English text on node if first time seeing English
-  if (!node.__agriOriginalText && /^[a-zA-Z0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹+\-×÷=]+$/.test(raw.trim())) {
+  // Stash original English text if the node currently contains Latin characters
+  if (!node.__agriOriginalText && /[a-zA-Z]/.test(raw)) {
     node.__agriOriginalText = raw;
   }
 
   const origText = node.__agriOriginalText || raw;
   if (!origText || !origText.trim()) return;
 
-  // If target is English, restore original English text or reverse-translate
+  // If target is English, restore original English text cleanly
   if (targetLang === 'en') {
-    if (node.__agriOriginalText) {
-      if (node.nodeValue !== node.__agriOriginalText) {
-        node.nodeValue = node.__agriOriginalText;
-      }
-      return;
-    }
-
-    const reverseMatch = lookupFastTranslation(raw, 'en');
-    if (reverseMatch && reverseMatch !== raw.trim()) {
-      const leading = raw.match(/^\s*/)?.[0] || '';
-      const trailing = raw.match(/\s*$/)?.[0] || '';
-      node.nodeValue = `${leading}${reverseMatch}${trailing}`;
-      node.__agriOriginalText = node.nodeValue;
+    if (node.__agriOriginalText && node.nodeValue !== node.__agriOriginalText) {
+      node.nodeValue = node.__agriOriginalText;
     }
     return;
   }
@@ -543,7 +535,7 @@ class LiveDOMTranslator {
       if (this.debounceTimer) clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         translateSubtree(document.body, this.currentLang);
-      }, 50);
+      }, 20);
     });
 
     this.observer.observe(document.body, {
@@ -555,7 +547,11 @@ class LiveDOMTranslator {
 
   setLanguage(newLang) {
     this.currentLang = newLang;
-    translateSubtree(document.body, newLang);
+    if (newLang === 'en') {
+      this.stop();
+    } else {
+      this.start(newLang);
+    }
   }
 
   stop() {
