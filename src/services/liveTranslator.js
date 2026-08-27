@@ -1,5 +1,5 @@
 /**
- * AgriSphere Unified Live Real-Time DOM & Dynamic Content Translation Engine
+ * Sufala AI Unified Live Real-Time DOM & Dynamic Content Translation Engine
  * Amazon / Flipkart-Style Instant Live Translation with 0ms Latency & High Coverage
  */
 

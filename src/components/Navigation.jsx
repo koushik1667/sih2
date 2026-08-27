@@ -155,7 +155,8 @@ export const Navigation = () => {
 
               {/* Logo & Platform Name */}
               <div 
-                className="flex items-center gap-2 sm:gap-3 cursor-pointer group" 
+                className="flex items-center gap-2 sm:gap-3 cursor-pointer group notranslate" 
+                translate="no"
                 onClick={() => setActiveTab('command_center')}
               >
                 <div className="hidden sm:flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#5D7052] text-[#F3F4F1] shadow-soft group-hover:scale-105 group-hover:bg-[#4D5E44] transition-all shrink-0">
@@ -163,8 +164,8 @@ export const Navigation = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-1 sm:gap-2">
-                    <span className="text-sm sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none">
-                      AgriSphere <span className="text-[#5D7052] italic font-normal">AI</span>
+                    <span className="text-sm sm:text-xl font-bold tracking-tight text-[#2C2C24] font-serif leading-none notranslate" translate="no">
+                      Sufala <span className="text-[#5D7052] italic font-normal">AI</span>
                     </span>
                     <span className="px-1.5 py-0.2 text-[8px] sm:text-[10px] font-bold uppercase rounded-full bg-[#5D7052]/10 text-[#5D7052] border border-[#5D7052]/20">
                       v2.0

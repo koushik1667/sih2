@@ -4,7 +4,7 @@ import { api } from '../services/api';
 
 const TRANSLATIONS = {
   en: {
-    app_title: "AgriSphere AI",
+    app_title: "Sufala AI",
     tagline: "Geospatial Remote Sensing, Soil Health & National Crop Intelligence",
     nav_command_center: "Command Center",
     nav_satellite_srm: "GeoSR-AI Studio",
