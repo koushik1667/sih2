@@ -946,17 +946,37 @@ export const LanguageProvider = ({ children }) => {
   };
 
   const setLang = (newLang) => {
+    const prevLang = lang;
     setLangState(newLang);
     localStorage.setItem('agri_lang', newLang);
 
-    // 1. Apply Universal Full-Page Neural Translation
-    applyGoogleTranslate(newLang);
+    if (newLang === 'en') {
+      // 1. Clear all Google Translate cookies across all domain scopes
+      const domains = [
+        '',
+        window.location.hostname,
+        `.${window.location.hostname}`,
+        'localhost',
+        '.localhost'
+      ];
+      domains.forEach(d => {
+        const dStr = d ? `domain=${d}; ` : '';
+        document.cookie = `googtrans=; ${dStr}path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+        document.cookie = `googtrans=; ${dStr}path=/;`;
+      });
+      document.cookie = "googtrans=/en/en; path=/;";
 
-    // 2. Run instant DOM & token translation engine
-    if (isLiveActive) {
-      if (newLang === 'en') {
-        liveTranslatorEngine.stop();
-      } else {
+      liveTranslatorEngine.stop();
+
+      // If switching from another language to English, reload to cleanly restore original English DOM
+      if (prevLang !== 'en' || document.querySelector('font') || document.documentElement.classList.contains('translated-ltr') || document.documentElement.classList.contains('translated-rtl')) {
+        window.location.reload();
+      }
+    } else {
+      // Apply Universal Full-Page Neural Translation
+      applyGoogleTranslate(newLang);
+
+      if (isLiveActive) {
         liveTranslatorEngine.start(newLang);
       }
     }
