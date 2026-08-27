@@ -361,7 +361,8 @@ export const LiveLandScannerMap = () => {
 
   // Live Debounced Autocomplete Search
   useEffect(() => {
-    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+    const q = typeof searchQuery === 'string' ? searchQuery.trim() : '';
+    if (!q || q.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -369,7 +370,7 @@ export const LiveLandScannerMap = () => {
 
     const timer = setTimeout(async () => {
       try {
-        const results = await searchLocations(searchQuery);
+        const results = await searchLocations(q);
         setSuggestions(results.slice(0, 6));
         setShowSuggestions(results.length > 0);
       } catch (err) {
@@ -403,13 +404,18 @@ export const LiveLandScannerMap = () => {
 
   // Select Search Item
   const handleSelectLocation = (item) => {
+    if (!item) return;
     setShowSuggestions(false);
     setSelectedSearchResult(item);
-    setSearchQuery(item.displayName);
+    const resolvedName = item.displayName || item.name || item.town || 'Selected Area';
+    setSearchQuery(resolvedName);
 
-    if (mapInstanceRef.current) {
+    const lat = typeof item.lat === 'number' ? item.lat : parseFloat(item.lat);
+    const lon = typeof item.lon === 'number' ? item.lon : parseFloat(item.lon);
+
+    if (mapInstanceRef.current && !isNaN(lat) && !isNaN(lon)) {
       const map = mapInstanceRef.current;
-      map.flyTo([item.lat, item.lon], 16, { duration: 1.5 });
+      map.flyTo([lat, lon], 16, { duration: 1.5 });
 
       // Remove existing search marker if any
       if (searchMarkerRef.current) {
@@ -417,25 +423,27 @@ export const LiveLandScannerMap = () => {
       }
 
       // Add prominent search pin with informative popup
-      const zone = getAgroClimaticZone(item.lat, item.lon);
-      const marker = L.marker([item.lat, item.lon], {
+      const zone = getAgroClimaticZone(lat, lon);
+      const marker = L.marker([lat, lon], {
         icon: createSearchPinIcon()
       }).addTo(map);
 
+      const titleName = item.town || item.name || resolvedName;
+      const subtitle = [item.district, item.state].filter(Boolean).join(', ');
       const popupContent = `
         <div style="font-family: sans-serif; padding: 4px; min-width: 200px;">
           <div style="font-size: 10px; font-weight: 800; color: #5D7052; text-transform: uppercase; margin-bottom: 2px;">
             📍 Located Area
           </div>
           <div style="font-size: 13px; font-weight: 800; color: #2C2C24; margin-bottom: 4px;">
-            ${item.town || item.displayName}
+            ${titleName}
           </div>
           <div style="font-size: 11px; color: #78786C; margin-bottom: 6px;">
-            ${item.district ? item.district + ', ' : ''}${item.state}
+            ${subtitle}
           </div>
           <div style="background: #F0EBE5; padding: 6px; border-radius: 8px; font-size: 10px; color: #2C2C24; margin-bottom: 8px;">
-            <strong>Agro Zone:</strong> ${zone.name}<br/>
-            <strong>Coords:</strong> ${item.lat.toFixed(5)}°N, ${item.lon.toFixed(5)}°E
+            <strong>Agro Zone:</strong> ${zone?.name || 'Agro Climatic Zone'}<br/>
+            <strong>Coords:</strong> ${lat.toFixed(5)}°N, ${lon.toFixed(5)}°E
           </div>
           <div style="display: flex; gap: 4px;">
             <button id="add-search-pin-btn" style="flex: 1; background: #5D7052; color: #FFF; border: none; border-radius: 6px; padding: 5px 8px; font-size: 10px; font-weight: 700; cursor: pointer;">
@@ -451,33 +459,34 @@ export const LiveLandScannerMap = () => {
         const btn = document.getElementById('add-search-pin-btn');
         if (btn) {
           btn.onclick = () => {
-            setPoints((prev) => [...prev, [item.lat, item.lon]]);
-            showToast(`Added ${item.town || 'point'} to boundary polygon`, 'success');
+            setPoints((prev) => [...prev, [lat, lon]]);
+            showToast(`Added ${item.town || item.name || 'point'} to boundary polygon`, 'success');
             marker.closePopup();
           };
         }
       });
 
       searchMarkerRef.current = marker;
-      showToast(`Found: ${item.displayName}`, 'success');
+      showToast(`Found: ${resolvedName}`, 'success');
     }
   };
 
   // Search Submit
   const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (e) e.preventDefault();
+    const q = typeof searchQuery === 'string' ? searchQuery.trim() : '';
+    if (!q) return;
 
     setSearching(true);
     try {
-      const results = await searchLocations(searchQuery);
+      const results = await searchLocations(q);
       if (results && results.length > 0) {
         handleSelectLocation(results[0]);
       } else {
         showToast('Location not found. Try entering city, district, village, or lat,lng coordinates.', 'warning');
       }
     } catch (err) {
-      showToast('Search query error: ' + err.message, 'error');
+      showToast('Search query error: ' + (err?.message || 'Failed to search location'), 'error');
     } finally {
       setSearching(false);
     }
