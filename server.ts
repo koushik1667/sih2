@@ -734,6 +734,7 @@ app.get("/api/chat/prompts", (req, res) => {
 app.post("/api/chat", async (req, res) => {
   const { query, language = "en", farm_context } = req.body;
   const qLower = (query || "").toLowerCase();
+  const langCode = (language || "en").toLowerCase();
 
   // Try Gemini API if available
   const ai = getGeminiClient();
@@ -741,15 +742,17 @@ app.post("/api/chat", async (req, res) => {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: `You are Krishi Mitra, an expert ICAR agronomist in India. Answer this farmer query in language '${language}':
-Query: ${query}
+        contents: `You are Krishi Mitra, an expert ICAR agricultural scientist and agronomist in India.
+CRITICAL LANGUAGE REQUIREMENT: You MUST strictly write your entire reply ONLY in the requested language: '${langCode}' (e.g. Telugu script for 'te', Devanagari Hindi for 'hi', Kannada script for 'kn', Tamil script for 'ta', Marathi for 'mr', Bengali for 'bn', Gujarati for 'gu', Punjabi for 'pa'). Do NOT write in English unless requested language is 'en'.
+
+Farmer Query: ${query}
 Farm Context: ${JSON.stringify(farm_context || {})}
-Provide clear diagnosis, exact scientific dosages (e.g. kg/acre or ml/L), organic alternatives, and citations.`
+Provide exact scientific diagnosis, dosages (e.g. kg/acre, ml/L water), organic alternatives, and ICAR advisory.`
       });
       if (response && response.text) {
         return res.json({
           query,
-          language,
+          language: langCode,
           topic: "ICAR Agronomy AI Advisory",
           answer: response.text,
           citation: "ICAR & Gemini Agricultural Knowledge Synthesis",
@@ -765,32 +768,95 @@ Provide clear diagnosis, exact scientific dosages (e.g. kg/acre or ml/L), organi
     }
   }
 
-  // Fallback to internal ICAR RAG database
-  let match = AGRI_KNOWLEDGE_RULES.find((r) => r.keywords.some((kw) => qLower.includes(kw)));
-  if (!match) {
-    match = {
-      topic: "General Agronomy Practice",
-      content: "For your specific agricultural query, maintain optimal soil organic matter through regular addition of FYM/compost, follow balanced NPK fertilization (4:2:1 ratio for cereals), and ensure timely prophylactic pest scouting. Consult your nearest Krishi Vigyan Kendra (KVK).",
-      citation: "ICAR General Agronomy Handbook"
-    };
-  }
+  // Multilingual Pre-Crafted ICAR Agronomy Knowledge Base
+  const MULTILINGUAL_RAG_KNOWLEDGE: Record<string, Record<string, string>> = {
+    te: {
+      nitrogen: "నత్రజని (యూరియా) లోపం వల్ల మొదట పాత ఆకులు పసుపు రంగులోకి మారుతాయి. నివారణకు: ఎకరానికి 40 కిలోల వేప పూత పూసిన యూరియా వేయండి లేదా 2% యూరియా ద్రావణం (లీటరు నీటికి 20 గ్రాములు) లేదా నానో యూరియా 4 మి.లీ లీటరు నీటిలో కలిపి పిచికారీ చేయండి.",
+      phosphorus: "భాస్వరం లోపం వల్ల ఆకుల అడుగుభాగం ముదురు ఊదా లేదా కాంస్య రంగులోకి మారి వేర్లు బలహీనపడతాయి. నివారణకు: ఎకరానికి 50 కిలోల సింగిల్ సూపర్ ఫాస్ఫేట్ (SSP) లేదా 25 కిలోల డీఏపీ (DAP) వేయండి.",
+      pest: "వరిలో కాండం తొలిచే పురుగు నివారణకు: ఎకరానికి 5 లింగాకర్షక బుట్టలు (Pheromone traps) అమర్చండి. ట్రైకోగ్రామా కార్డులను ఎకరానికి 20,000 చొప్పున విడుదల చేయండి. తీవ్రత ఎక్కువగా ఉంటే క్లోరాంట్రానిలిప్రోల్ 0.3 మి.లీ/లీటర్ పిచికారీ చేయండి.",
+      pm_kisan: "పీఎం కిసాన్ సమ్మాన్ నిధి కింద అర్హులైన రైతులకు సంవత్సరానికి ₹6,000 రూపాయలు (మూడు విడతల్లో ₹2,000 చొప్పున) నేరుగా బ్యాంక్ ఖాతాలో జమ చేయబడుతుంది. అలాగే పీఎంఎఫ్బీవై పంట బీమా సౌకర్యం పొందవచ్చు.",
+      rotation: "వరి లేదా పత్తి తర్వాత మినుము, పెసర లేదా శనగ వంటి పప్పుధాన్యాల పంటలను వేయడం ద్వారా నేలలో రైజోబియం బ్యాక్టీరియా ద్వారా సహజంగా నత్రజని స్థిరీకరించబడి భూసారం గణనీయంగా పెరుగుతుంది.",
+      general: "మీ వ్యవసాయ ప్రశ్నకు: సమతుల్య ఎన్పీకే ఎరువులు (NPK 4:2:1 నిష్పత్తి), పచ్చిరొట్ట ఎరువుల వినియోగం, నేల పరీక్షల ఆధారిత పోషణ మరియు సకాలంలో పురుగుల నివారణ చర్యలు చేపట్టండి."
+    },
+    hi: {
+      nitrogen: "नाइट्रोजन (यूरिया) की कमी के कारण पुरानी निचली पत्तियां पहले पीली पड़ने लगती हैं। रोकथाम: प्रति एकड़ 40 किग्रा नीम लेपित यूरिया दें या 2% यूरिया घोल (20 ग्राम/लीटर) या नैनो यूरिया 4 मिली/लीटर का छिड़काव करें।",
+      phosphorus: "फास्फोरस की कमी से पत्तियों के नीचे का हिस्सा बैंगनी या तांबे जैसा हो जाता है और जड़ें कमजोर रहती हैं। उपचार: सिंगल सुपर फॉस्फेट (SSP @ 50 किग्रा/एकड़) या डीएपी (25 किग्रा/एकड़) का प्रयोग करें।",
+      pest: "धान में तना छेदक कीट की रोकथाम: प्रति एकड़ 5 फेरोमोन ट्रैप लगाएं। ट्राईकोग्रामा कार्ड 20,000/एकड़ छोड़ें या क्लोरेंट्रानिलिप्रोल 0.3 मिली/लीटर पानी में घोलकर छिड़कें।",
+      pm_kisan: "पीएम-किसान योजना के तहत किसानों को हर साल ₹6,000 (तीन समान किस्तों में ₹2,000) सीधे बैंक खाते में मिलते हैं। पीएमएफबीवाई फसल बीमा के लिए नजदीकी सीएससी केंद्र जाएं।",
+      rotation: "धान या गेहूं के बाद चना, मूंग या उड़द जैसी दलहनी फसलें लगाने से राइजोबियम जीवाणु द्वारा मिट्टी में नाइट्रोजन की प्राकृतिक आपूर्ति होती है और ₹10,000+ प्रति एकड़ का अतिरिक्त लाभ होता है।",
+      general: "संतुलित एनपीके उर्वरक (4:2:1 अनुपात), जैविक खाद (गोबर खाद/वर्मीकंपोस्ट) का प्रयोग और समय पर कीट नियंत्रण प्रबंधन अपनाएं। नजदीकी कृषि विज्ञान केंद्र से संपर्क करें।"
+    },
+    kn: {
+      nitrogen: "ಸಾರಜನಕ (ಯೂರಿಯಾ) ಕೊರತೆಯಿಂದ ಹಳೆಯ ಎಲೆಗಳು ಮೊದಲು ಹಳದಿ ಬಣ್ಣಕ್ಕೆ ತಿರುಗುತ್ತವೆ. ಪರಿಹಾರ: ಎಕರೆಗೆ 40 ಕೆಜಿ ಬೇವಿನ ಲೇಪಿತ ಯೂರಿಯಾ ಅಥವಾ 2% ಯೂರಿಯಾ ದ್ರಾವಣ (ಲೀಟರ್ ನೀರಿಗೆ 20 ಗ್ರಾಂ) ಸಿಂಪಡಿಸಿ.",
+      phosphorus: "ರಂಜಕದ ಕೊರತೆಯಿಂದ ಎಲೆಗಳ ಕೆಳಭಾಗ ನೇರಳೆ ಬಣ್ಣಕ್ಕೆ ತಿರುಗಿ ಬೇರುಗಳ ಬೆಳವಣಿಗೆ ಕುಂಠಿತವಾಗುತ್ತದೆ. ಪರಿಹಾರ: ಸಿಂಗಲ್ ಸೂಪರ್ ಫಾಸ್ಫೇಟ್ (SSP @ 50 ಕೆಜಿ/ಎಕರೆ) ಅಥವಾ ಡಿಎಪಿ ಬಳಸಿ.",
+      pest: "ಭತ್ತದಲ್ಲಿ ಕಾಂಡ ಕೊರೆಯುವ ಹುಳು ನಿಯಂತ್ರಣಕ್ಕೆ: ಎಕರೆಗೆ 5 ಫೆರೋಮೋನ್ ಬಲೆಗಳನ್ನು ಅಳವಡಿಸಿ. ತೀವ್ರವಾಗಿದ್ದರೆ ಕ್ಲೋರಂಟ್ರಾನಿಲಿಪ್ರೋಲ್ 0.3 ಮಿಲಿ/ಲೀಟರ್ ಸಿಂಪಡಿಸಿ.",
+      pm_kisan: "ಪಿಎಂ-ಕಿಸಾನ್ ಯೋಜನೆಯಡಿ ರೈತರಿಗೆ ವರ್ಷಕ್ಕೆ ₹6,000 (₹2,000 ಮೂರು ಕಂತುಗಳಲ್ಲಿ) ನೇರವಾಗಿ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ಜಮೆಯಾಗುತ್ತದೆ.",
+      rotation: "ಮುಖ್ಯ ಬೆಳೆಯ ನಂತರ ಕಡಲೆ, ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯುವುದರಿಂದ ಮಣ್ಣಿನಲ್ಲಿ ಸಾರಜನಕ ಹೆಚ್ಚಾಗಿ ಫಲವತ್ತತೆ ಸುಧಾರಿಸುತ್ತದೆ.",
+      general: "ಸಮತೋಲಿತ NPK ರಸಗೊಬ್ಬರ ಬಳಕೆ, ಮಣ್ಣು ಪರೀಕ್ಷೆ ಮತ್ತು ನಿಯಮಿತ ಕೀಟ ನಿಯಂತ್ರಣ ಕ್ರಮಗಳನ್ನು ಅನುಸರಿಸಿ."
+    },
+    ta: {
+      nitrogen: "நைட்ரஜன் (யூரியா) பற்றாக்குறையால் பழைய இலைகள் முதலில் மஞ்சள் நிறமாக மாறும். தீர்வு: ஏக்கருக்கு 40 கிலோ வேப்பம்பூசப்பட்ட யூரியா அல்லது 2% யூரியா கரைசல் (லிட்டருக்கு 20 கிராம்) தெளிக்கவும்.",
+      phosphorus: "பாஸ்பரஸ் பற்றாக்குறையால் இலைகளின் அடிப்பகுதி ஊதா நிறமாக மாறும். தீர்வு: சூப்பர் பாஸ்பேட் (SSP @ 50 கிலோ/ஏக்கர்) அல்லது டிஏபி (25 கிலோ/ஏக்கர்) இடவும்.",
+      pest: "நெல் தண்டு துளைப்பான் கட்டுப்பாடு: ஏக்கருக்கு 5 இனக்கவர்ச்சி பொறிகளை வைக்கவும். டிரைக்கோடெர்மா ஒட்டுண்ணிகளை வெளியிடவும்.",
+      pm_kisan: "பிஎம் கிசான் திட்டத்தின் கீழ் விவசாயிகளுக்கு ஆண்டுக்கு ₹6,000 மூன்று தவணைகளாக வங்கி கணக்கில் நேரடியாக செலுத்தப்படுகிறது.",
+      rotation: "பயறு வகை பயிர்களை (உளுந்து, பாசிப்பயறு) சுழற்சி முறையில் பயிரிடுவதன் மூலம் மண் வளம் மற்றும் நைட்ரஜன் அளவு அதிகரிக்கும்.",
+      general: "சீரான உர மேலாண்மை (NPK), மண் பரிசோதனை மற்றும் சரியான பயிர் பாதுகாப்பு முறைகளை பின்பற்றவும்."
+    }
+  };
 
-  let extraNote = "";
-  if (farm_context && farm_context.crop) {
-    extraNote = ` (Tailored for ${farm_context.crop} on ${farm_context.land_size || 5} acres in ${farm_context.soil_type || "Alluvial"} soil)`;
+  let topic = "ICAR Agronomy Advisory";
+  let answer = "";
+  let citation = "ICAR Agricultural Knowledge Repository";
+
+  const langRag = MULTILINGUAL_RAG_KNOWLEDGE[langCode];
+  if (langRag) {
+    if (qLower.includes("nitrogen") || qLower.includes("urea") || qLower.includes("yellow") || qLower.includes("పసుపు") || qLower.includes("పీలా") || qLower.includes("ಹಳದಿ") || qLower.includes("மஞ்சள்")) {
+      topic = langCode === 'te' ? "నత్రజని నిర్వహణ & ఆకు పసుపు తెగులు" : langCode === 'hi' ? "नाइट्रोजन प्रबंधन एवं पत्ती पीलापन" : "Nitrogen Management";
+      answer = langRag.nitrogen;
+    } else if (qLower.includes("pest") || qLower.includes("borer") || qLower.includes("insect") || qLower.includes("పురుగు") || qLower.includes("कीट") || qLower.includes("ಹುಳು") || qLower.includes("பூச்சி")) {
+      topic = langCode === 'te' ? "సమీకృత సస్యరక్షణ & పురుగు నివారణ" : langCode === 'hi' ? "समेकित कीट प्रबंधन" : "Integrated Pest Management";
+      answer = langRag.pest;
+    } else if (qLower.includes("pm-kisan") || qLower.includes("subsidy") || qLower.includes("scheme") || qLower.includes("రాయితీ") || qLower.includes("योजना") || qLower.includes("மானியம்") || qLower.includes("ಯೋಜನೆ")) {
+      topic = langCode === 'te' ? "ప్రభుత్వ పథకాలు & పీఎం కిసాన్" : langCode === 'hi' ? "सरकारी योजनाएं एवं पीएम किसान" : "Government Schemes";
+      answer = langRag.pm_kisan;
+    } else if (qLower.includes("rotation") || qLower.includes("crop") || qLower.includes("season") || qLower.includes("పంట") || qLower.includes("फसल") || qLower.includes("ಬೆಳೆ") || qLower.includes("பயிர்")) {
+      topic = langCode === 'te' ? "రబీ పంట ఎంపిక & పంట మార్పిడి" : langCode === 'hi' ? "फसल चक्र एवं रबी फसल योजना" : "Crop Rotation & Seasons";
+      answer = langRag.rotation;
+    } else {
+      answer = langRag.general;
+    }
+  } else {
+    // English fallback and translate
+    let match = AGRI_KNOWLEDGE_RULES.find((r) => r.keywords.some((kw) => qLower.includes(kw)));
+    if (!match) {
+      match = {
+        topic: "General Agronomy Practice",
+        content: "Maintain optimal soil organic matter through regular compost application, balanced NPK fertilization (4:2:1 ratio), and proactive pest monitoring. Consult your local Krishi Vigyan Kendra.",
+        citation: "ICAR General Agronomy Handbook"
+      };
+    }
+    topic = match.topic;
+    answer = match.content;
+    citation = match.citation;
+
+    if (langCode !== 'en') {
+      try {
+        answer = await translateSingleText(answer, "en", langCode);
+        topic = await translateSingleText(topic, "en", langCode);
+      } catch (_) {}
+    }
   }
 
   res.json({
     query,
-    language,
-    topic: match.topic,
-    answer: match.content + extraNote,
-    citation: match.citation,
+    language: langCode,
+    topic,
+    answer,
+    citation,
     suggested_actions: [
-      "Schedule soil NPK health re-test",
-      "Check 7-day rainfall forecast before spraying",
-      "Apply recommended bio-fertilizer split dose",
-      "Explore PMKSY micro-irrigation subsidy"
+      langCode === 'te' ? "నేల NPK పరీక్ష చేయించండి" : langCode === 'hi' ? "मृदा एनपीके स्वास्थ्य परीक्षण कराएं" : "Schedule soil NPK health re-test",
+      langCode === 'te' ? "పిచికారీకి ముందు 7 రోజుల వర్ష సూచన చూడండి" : langCode === 'hi' ? "छिड़काव से पहले 7-दिवसीय वर्षा पूर्वानुमान देखें" : "Check 7-day rainfall forecast before spraying",
+      langCode === 'te' ? "సిఫార్సు చేసిన మోతాదులో ఎరువులు వేయండి" : langCode === 'hi' ? "अनुशंसित जैविक खाद का छिड़काव करें" : "Apply recommended bio-fertilizer split dose"
     ]
   });
 });

@@ -18,6 +18,33 @@ import {
 import { useLanguage, SUPPORTED_LANGUAGES } from '../context/LanguageContext';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
+import { historyService } from '../services/historyService';
+
+const NATIVE_FALLBACK_ADVISORIES = {
+  te: "మీ వ్యవసాయ ప్రశ్నకు: సమతుల్య ఎన్పీకే ఎరువులు (NPK 4:2:1 నిష్పత్తి), పచ్చిరొట్ట ఎరువుల వినియోగం, నేల పరీక్షల ఆధారిత పోషణ మరియు సకాలంలో పురుగుల నివారణ చర్యలు చేపట్టండి.",
+  hi: "आपकी कृषि समस्या के लिए: संतुलित एनपीके उर्वरक (4:2:1 अनुपात), जैविक खाद का प्रयोग, मृदा परीक्षण आधारित पोषण और समय पर कीट नियंत्रण प्रबंधन अपनाएं।",
+  kn: "ನಿಮ್ಮ ಕೃಷಿ ಪ್ರಶ್ನೆಗೆ: ಸಮತೋಲಿತ NPK ರಸಗೊಬ್ಬರ ಬಳಕೆ, ಮಣ್ಣು ಪರೀಕ್ಷೆ, ಸಾವಯವ ಗೊಬ್ಬರ ಮತ್ತು ನಿಯಮಿತ ಕೀಟ ನಿಯಂತ್ರಣ ಕ್ರಮಗಳನ್ನು ಅನುಸರಿಸಿ.",
+  ta: "உங்கள் விவசாய கேள்விக்கு: சீரான உர மேலாண்மை (NPK 4:2:1), மண் பரிசோதனை, இயற்கை உரம் மற்றும் சரியான பயிர் பாதுகாப்பு முறைகளை பின்பற்றவும்.",
+  mr: "आपल्या शेतीविषयक प्रश्नासाठी: संतुलित एनपीके खते, सेंद्रिय खतांचा वापर, माती परीक्षण आणि वेळेवर कीड नियंत्रण उपाय योजना करा.",
+  bn: "আপনার কৃষি প্রশ্নের জন্য: সুষম NPK সার প্রয়োগ, জৈব সার ব্যবহার, মাটি পরীক্ষা এবং সময়মতো কীট দমন ব্যবস্থা গ্রহণ করুন।",
+  gu: "તમારા કૃષિ પ્રશ્ન માટે: સંતુલિત NPK ખાતર, જૈવિક ખાતરનો ઉપયોગ, જમીન પરીક્ષણ અને સમયસર જીવાત નિયંત્રણ પગલાં લો.",
+  pa: "ਤੁਹਾਡੇ ਖੇਤੀ ਸੰਬੰਧੀ ਸਵਾਲ ਲਈ: ਸੰਤੁਲਿਤ NPK ਖਾਦਾਂ ਦੀ ਵਰਤੋਂ, ਜੈਵਿਕ ਖਾਦ, ਮਿੱਟੀ ਪਰਖ ਅਤੇ ਸਮੇਂ ਸਿਰ ਕੀੜੇ-ਮਕੌੜਿਆਂ ਦੀ ਰੋਕਥਾਮ ਕਰੋ।",
+  en: "For balanced crop health: follow ICAR soil-test based NPK fertilization (4:2:1 ratio), organic vermicompost addition, and timely integrated pest monitoring."
+};
+
+const CURRENCY_PRONUNCIATIONS = {
+  te: " రూపాయలు ",
+  hi: " रुपये ",
+  kn: " ರೂಪಾಯಿ ",
+  ta: " ரூபாய் ",
+  mr: " रुपये ",
+  bn: " টাকা ",
+  gu: " રૂપિયા ",
+  pa: " ਰੁਪਏ ",
+  ml: " രൂപ ",
+  or: " ଟଙ୍କା ",
+  en: " rupees "
+};
 
 const SPEECH_LANG_CODES = {
   te: 'te-IN',
@@ -190,19 +217,59 @@ export const MultilingualVoiceAgent = ({ isOpen, onClose }) => {
         } : null
       });
 
-      setAiResponse(res);
+      let finalAnswer = res.answer;
+
+      // Double-check: If target is non-English and response contains English, translate it to guarantee 100% native language
+      if (lang !== 'en' && finalAnswer) {
+        const isEnglish = /^[a-zA-Z0-9\s,.:;'"!?-]+$/.test(finalAnswer.slice(0, 40));
+        if (isEnglish) {
+          try {
+            const trans = await api.translate(finalAnswer, 'en', lang);
+            if (trans && trans.translated_text) {
+              finalAnswer = trans.translated_text;
+            }
+          } catch (_) {}
+        }
+      }
+
+      const updatedResponse = {
+        ...res,
+        answer: finalAnswer || NATIVE_FALLBACK_ADVISORIES[lang] || NATIVE_FALLBACK_ADVISORIES.en
+      };
+
+      setAiResponse(updatedResponse);
 
       // Append to global chat state for persistence
       setChatMessages(prev => [
         ...prev,
         { id: `voice-user-${Date.now()}`, sender: 'user', text: queryText },
-        { id: `voice-bot-${Date.now()}`, sender: 'bot', text: res.answer, citation: res.citation, topic: res.topic }
+        { id: `voice-bot-${Date.now()}`, sender: 'bot', text: updatedResponse.answer, citation: updatedResponse.citation, topic: updatedResponse.topic }
       ]);
 
+      // Log voice interaction into Universal History Vault
+      historyService.addEntry({
+        type: "ai_advisor",
+        title: `Krishi Mitra Voice Advisory (${lang.toUpperCase()})`,
+        location: selectedFarm?.location || "Field Voice Session",
+        coordinates: selectedFarm?.coordinates ? { lat: selectedFarm.coordinates.lat || selectedFarm.coordinates.latitude, lon: selectedFarm.coordinates.lng || selectedFarm.coordinates.longitude } : { lat: 14.25658, lon: 79.85595 },
+        summary: `Spoken Query: "${queryText}". Answered in ${lang.toUpperCase()}.`,
+        metrics: [
+          { label: "Language", value: lang.toUpperCase() },
+          { label: "Topic", value: updatedResponse.topic || "Agronomy" },
+          { label: "Mode", value: "Neural Voice Agent" }
+        ],
+        tags: ["Voice Agent", "Speech-to-Speech", "ICAR RAG"],
+        details: {
+          query: queryText,
+          answer: updatedResponse.answer,
+          citation: updatedResponse.citation
+        }
+      });
+
       // Speak response aloud in target language
-      speakText(res.answer);
+      speakText(updatedResponse.answer);
     } catch (err) {
-      const fallback = "I have recorded your agronomic query. For balanced NPK application, soil testing every season and crop rotation with legumes is recommended.";
+      const fallback = NATIVE_FALLBACK_ADVISORIES[lang] || NATIVE_FALLBACK_ADVISORIES.en;
       setAiResponse({ answer: fallback, citation: "ICAR Agronomy" });
       speakText(fallback);
     } finally {
@@ -214,15 +281,43 @@ export const MultilingualVoiceAgent = ({ isOpen, onClose }) => {
     if (!synthRef.current || !textToSpeak) return;
 
     synthRef.current.cancel();
-    const cleanText = textToSpeak.replace(/[*#_`]/g, '');
+
+    // Clean text and replace currency symbols with native phonetic words for fluent pronunciation
+    const currencyWord = CURRENCY_PRONUNCIATIONS[lang] || " rupees ";
+    let cleanText = textToSpeak
+      .replace(/₹/g, currencyWord)
+      .replace(/[*#_`~]/g, '')
+      .replace(/\[.*?\]\(.*?\)/g, '') // remove markdown links
+      .trim();
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = SPEECH_LANG_CODES[lang] || 'en-IN';
-    utterance.rate = 0.95;
+    const targetSpeechLang = SPEECH_LANG_CODES[lang] || 'en-IN';
+    utterance.lang = targetSpeechLang;
+    utterance.rate = 0.92; // slightly slower for maximum natural clarity
     utterance.pitch = 1.0;
 
-    // Pick best matching voice
+    // Pick best matching voice available in client browser
     const voices = synthRef.current.getVoices();
-    const matchingVoice = voices.find(v => v.lang.startsWith(lang) || v.lang.includes(SPEECH_LANG_CODES[lang]));
+    const matchingVoice = voices.find(v => {
+      const vLang = (v.lang || '').toLowerCase();
+      const vName = (v.name || '').toLowerCase();
+      const lCode = lang.toLowerCase();
+      return (
+        vLang.startsWith(lCode) ||
+        vLang.includes(targetSpeechLang.toLowerCase()) ||
+        vName.includes(lCode) ||
+        (lCode === 'te' && (vName.includes('telugu') || vLang.includes('te'))) ||
+        (lCode === 'hi' && (vName.includes('hindi') || vLang.includes('hi'))) ||
+        (lCode === 'kn' && (vName.includes('kannada') || vLang.includes('kn'))) ||
+        (lCode === 'ta' && (vName.includes('tamil') || vLang.includes('ta'))) ||
+        (lCode === 'mr' && (vName.includes('marathi') || vLang.includes('mr'))) ||
+        (lCode === 'bn' && (vName.includes('bengali') || vLang.includes('bn'))) ||
+        (lCode === 'gu' && (vName.includes('gujarati') || vLang.includes('gu'))) ||
+        (lCode === 'pa' && (vName.includes('punjabi') || vLang.includes('pa'))) ||
+        (lCode === 'ml' && (vName.includes('malayalam') || vLang.includes('ml')))
+      );
+    });
+
     if (matchingVoice) {
       utterance.voice = matchingVoice;
     }
