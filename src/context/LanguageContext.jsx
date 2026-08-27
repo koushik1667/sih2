@@ -950,52 +950,61 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
+  const resetToEnglish = () => {
+    localStorage.removeItem('agri_lang');
+    localStorage.setItem('agri_lang', 'en');
+    setLangState('en');
+
+    const domains = [
+      '',
+      window.location.hostname,
+      `.${window.location.hostname}`,
+      'localhost',
+      '.localhost'
+    ];
+    const paths = ['/', '', '/en', '/en/en'];
+    domains.forEach(d => {
+      paths.forEach(p => {
+        const dStr = d ? `domain=${d}; ` : '';
+        const pStr = p ? `path=${p}; ` : '';
+        document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+      });
+    });
+
+    liveTranslatorEngine.stop();
+    window.location.reload();
+  };
+
   const setLang = (newLang) => {
     const prevLang = lang;
+    if (newLang === 'en') {
+      resetToEnglish();
+      return;
+    }
+
     setLangState(newLang);
     localStorage.setItem('agri_lang', newLang);
 
-    if (newLang === 'en') {
-      // 1. Clear all Google Translate cookies across all domain scopes
-      const domains = [
-        '',
-        window.location.hostname,
-        `.${window.location.hostname}`,
-        'localhost',
-        '.localhost'
-      ];
-      const paths = ['/', '', '/en', '/en/en'];
-      domains.forEach(d => {
-        paths.forEach(p => {
-          const dStr = d ? `domain=${d}; ` : '';
-          const pStr = p ? `path=${p}; ` : '';
-          document.cookie = `googtrans=; ${dStr}${pStr}expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
-        });
-      });
+    // Apply Universal Full-Page Neural Translation
+    applyGoogleTranslate(newLang);
 
-      liveTranslatorEngine.stop();
-
-      // If switching from another language to English, reload to cleanly restore original English DOM
-      if (prevLang !== 'en' || document.querySelector('font') || document.documentElement.classList.contains('translated-ltr') || document.documentElement.classList.contains('translated-rtl')) {
-        window.location.reload();
-      }
-    } else {
-      // Apply Universal Full-Page Neural Translation
-      applyGoogleTranslate(newLang);
-
-      if (isLiveActive) {
-        liveTranslatorEngine.start(newLang);
-      }
+    if (isLiveActive) {
+      liveTranslatorEngine.start(newLang);
     }
   };
 
   // Sync translation engine on mount & lang change
   React.useEffect(() => {
-    applyGoogleTranslate(lang);
-    if (isLiveActive && lang !== 'en') {
-      liveTranslatorEngine.start(lang);
-    } else {
+    if (lang === 'en') {
+      applyGoogleTranslate('en');
       liveTranslatorEngine.stop();
+    } else {
+      applyGoogleTranslate(lang);
+      if (isLiveActive) {
+        liveTranslatorEngine.start(lang);
+      } else {
+        liveTranslatorEngine.stop();
+      }
     }
     return () => {
       liveTranslatorEngine.stop();
@@ -1023,6 +1032,7 @@ export const LanguageProvider = ({ children }) => {
     <LanguageContext.Provider value={{ 
       lang, 
       setLang, 
+      resetToEnglish,
       t, 
       translateDynamic,
       supportedLanguages: SUPPORTED_LANGUAGES,
