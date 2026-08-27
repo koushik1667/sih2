@@ -339,6 +339,49 @@ export function lookupFastTranslation(text, targetLang) {
   return null;
 }
 
+// Pending batch translation queue
+let pendingBatchNodes = [];
+let batchTimeout = null;
+
+function flushBatchQueue(targetLang) {
+  if (pendingBatchNodes.length === 0 || targetLang === 'en') return;
+
+  const currentBatch = [...pendingBatchNodes];
+  pendingBatchNodes = [];
+
+  const uniqueTexts = Array.from(new Set(currentBatch.map(item => item.trimmed)));
+  
+  if (uniqueTexts.length === 0) return;
+
+  api.translateBatch(uniqueTexts, 'en', targetLang)
+    .then(res => {
+      if (res && Array.isArray(res.translated_texts)) {
+        const transMap = new Map();
+        uniqueTexts.forEach((text, i) => {
+          const trans = res.translated_texts[i] || text;
+          transMap.set(text, trans);
+          dynamicTranslationCache.set(`${targetLang}:${text}`, trans);
+        });
+
+        saveCacheToStorage();
+
+        // Apply translated text to active DOM nodes
+        currentBatch.forEach(({ node, origText, trimmed, leading, trailing }) => {
+          if (node && node.nodeValue && (node.__agriOriginalText === origText || !node.__agriOriginalText)) {
+            const translated = transMap.get(trimmed);
+            if (translated && translated !== trimmed) {
+              node.nodeValue = `${leading}${translated}${trailing}`;
+              translatedNodesCount++;
+            }
+          }
+        });
+
+        updateLiveStats();
+      }
+    })
+    .catch(() => {});
+}
+
 /**
  * Translates a single text node instantly with zero lag
  */
@@ -376,6 +419,7 @@ function translateTextNode(node, targetLang) {
     return;
   }
 
+  // 1. Instant Synchronous Fast Translation (0ms)
   const fastMatch = lookupFastTranslation(origText, targetLang);
   if (fastMatch) {
     const leading = origText.match(/^\s*/)?.[0] || '';
@@ -386,21 +430,24 @@ function translateTextNode(node, targetLang) {
       translatedNodesCount++;
     }
   } else {
-    // Background async fallback translation for novel text
+    // 2. Queue for Batched Asynchronous Translation
     const trimmed = origText.trim();
-    if (trimmed.length > 2 && trimmed.length < 150) {
-      api.translate(trimmed, 'en', targetLang).then(res => {
-        if (res && res.translated_text) {
-          const cacheKey = `${targetLang}:${trimmed}`;
-          dynamicTranslationCache.set(cacheKey, res.translated_text);
-          saveCacheToStorage();
-          if (node && node.nodeValue && node.__agriOriginalText === origText) {
-            const leading = origText.match(/^\s*/)?.[0] || '';
-            const trailing = origText.match(/\s*$/)?.[0] || '';
-            node.nodeValue = `${leading}${res.translated_text}${trailing}`;
-          }
-        }
-      }).catch(() => {});
+    if (trimmed.length > 2 && trimmed.length < 300) {
+      const leading = origText.match(/^\s*/)?.[0] || '';
+      const trailing = origText.match(/\s*$/)?.[0] || '';
+
+      pendingBatchNodes.push({
+        node,
+        origText,
+        trimmed,
+        leading,
+        trailing
+      });
+
+      if (batchTimeout) clearTimeout(batchTimeout);
+      batchTimeout = setTimeout(() => {
+        flushBatchQueue(targetLang);
+      }, 60);
     }
   }
 }
@@ -412,7 +459,7 @@ export function translateSubtree(rootNode, targetLang) {
   if (!rootNode) return;
 
   requestAnimationFrame(() => {
-    // If switching to English, unwrap Google translate font tags first
+    // If switching to English, unwrap any residual font tags
     if (targetLang === 'en') {
       rootNode.querySelectorAll?.('font').forEach(font => {
         if (font.parentNode) {
@@ -465,13 +512,13 @@ class LiveDOMTranslator {
     }
 
     // Debounced MutationObserver (0ms lag, no cascading cycles)
-    this.observer = new MutationObserver((mutations) => {
+    this.observer = new MutationObserver(() => {
       if (!this.isActive || this.currentLang === 'en') return;
 
       if (this.debounceTimer) clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         translateSubtree(document.body, this.currentLang);
-      }, 40);
+      }, 50);
     });
 
     this.observer.observe(document.body, {
@@ -491,6 +538,8 @@ class LiveDOMTranslator {
     if (this.observer) {
       this.observer.disconnect();
     }
+    pendingBatchNodes = [];
+    if (batchTimeout) clearTimeout(batchTimeout);
     translateSubtree(document.body, 'en');
   }
 }
