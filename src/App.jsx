@@ -14,7 +14,8 @@ import { AuthPage } from './pages/AuthPage';
 import { LiveTranslationHUD } from './components/LiveTranslationHUD';
 import { LiveLocationTracker } from './components/LiveLocationTracker';
 import { CookieConsent } from './components/CookieConsent';
-import { CheckCircle, Cookie, Compass, Sprout, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { MultilingualVoiceAgent } from './components/MultilingualVoiceAgent';
+import { CheckCircle, Cookie, Compass, Sprout, Loader2, AlertTriangle, RefreshCw, Mic, Bot } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -65,6 +66,7 @@ const MainContent = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { activeTab, setActiveTab, toast } = useApp();
   const { setIsTrackerOpen, isTracking } = useLocation();
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
 
   // 1. App Authentication Loading Screen
   if (authLoading) {
@@ -210,9 +212,32 @@ const MainContent = () => {
       {/* Krishi Cookie & Storage Consent Banner / Settings */}
       <CookieConsent />
 
+      {/* Floating Global Multilingual Voice Agent Trigger Orb */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2 group">
+        <button
+          type="button"
+          onClick={() => setIsVoiceOpen(true)}
+          className="flex items-center gap-2 px-4 py-3 rounded-full bg-[#5D7052] text-[#FEFEFA] shadow-2xl hover:bg-[#4D5E44] transition-all transform hover:scale-105 active:scale-95 border border-[#DED8CF]/40 cursor-pointer"
+          title="Talk to Krishi Mitra Multilingual AI Voice Agent"
+        >
+          <div className="relative flex items-center justify-center">
+            <Mic className="w-5 h-5 animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#C18C5D] animate-ping" />
+          </div>
+          <span className="text-xs font-bold font-serif hidden sm:inline">Voice Agent</span>
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#C18C5D]/30 text-[#FEFEFA] font-mono hidden md:inline">Live AI</span>
+        </button>
+      </div>
+
+      {/* Multilingual Voice Agent Modal */}
+      <MultilingualVoiceAgent 
+        isOpen={isVoiceOpen} 
+        onClose={() => setIsVoiceOpen(false)} 
+      />
+
       {/* Toast Notification Banner */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-slideUp">
+        <div className="fixed bottom-20 right-6 z-50 animate-slideUp">
           <div className="flex items-center gap-3 px-5 py-3.5 rounded-full bg-[#FEFEFA] border border-[#5D7052]/40 shadow-soft text-xs text-[#2C2C24]">
             <CheckCircle className="w-4 h-4 text-[#5D7052]" />
             <span className="font-semibold">{toast.message}</span>

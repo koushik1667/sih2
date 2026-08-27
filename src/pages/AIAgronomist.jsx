@@ -7,11 +7,13 @@ import {
   BookOpen, 
   CheckCircle2, 
   Lightbulb,
-  Languages
+  Languages,
+  Mic
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useApp } from '../context/AppContext';
+import { MultilingualVoiceAgent } from '../components/MultilingualVoiceAgent';
 
 export const AIAgronomist = () => {
   const { lang, t } = useLanguage();
@@ -22,6 +24,7 @@ export const AIAgronomist = () => {
   const [inputText, setInputText] = useState('');
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -222,24 +225,43 @@ export const AIAgronomist = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar */}
-      <div className="relative flex items-center">
-        <input
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder={t('chat_placeholder')}
-          className="w-full pl-6 pr-14 py-4 rounded-full bg-[#FEFEFA] border border-[#DED8CF] text-sm text-[#2C2C24] placeholder-[#78786C]/70 shadow-soft focus-visible:ring-2 ring-[#5D7052]/30 outline-none transition"
-        />
-        <button
-          onClick={() => handleSendMessage()}
-          disabled={!inputText.trim() || loading}
-          className="absolute right-2.5 p-3 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-white font-bold shadow-soft disabled:opacity-40 transition cursor-pointer hover:scale-105 active:scale-95"
-        >
-          <Send className="w-4 h-4" />
-        </button>
+      {/* Input Bar with Direct Voice Agent Mic Trigger */}
+      <div className="relative flex items-center gap-2">
+        <div className="relative flex-1 flex items-center">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder={t('chat_placeholder') || "Ask about crop diseases, NPK fertilizer, subsidies, or speak your query..."}
+            className="w-full pl-6 pr-24 py-4 rounded-full bg-[#FEFEFA] border border-[#DED8CF] text-sm text-[#2C2C24] placeholder-[#78786C]/70 shadow-soft focus-visible:ring-2 ring-[#5D7052]/30 outline-none transition"
+          />
+          <div className="absolute right-2.5 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsVoiceModalOpen(true)}
+              title="Speak to Krishi Mitra Voice Agent"
+              className="p-2.5 rounded-full bg-[#C18C5D]/15 hover:bg-[#C18C5D]/25 text-[#C18C5D] transition cursor-pointer hover:scale-105"
+            >
+              <Mic className="w-4 h-4 animate-pulse" />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSendMessage()}
+              disabled={!inputText.trim() || loading}
+              className="p-2.5 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-white font-bold shadow-soft disabled:opacity-40 transition cursor-pointer hover:scale-105 active:scale-95"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Multilingual Voice Agent Modal */}
+      <MultilingualVoiceAgent 
+        isOpen={isVoiceModalOpen} 
+        onClose={() => setIsVoiceModalOpen(false)} 
+      />
 
     </div>
   );
