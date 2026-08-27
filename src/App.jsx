@@ -15,7 +15,6 @@ import { LiveTranslationHUD } from './components/LiveTranslationHUD';
 import { LiveLocationTracker } from './components/LiveLocationTracker';
 import { CookieConsent } from './components/CookieConsent';
 import { MultilingualVoiceAgent } from './components/MultilingualVoiceAgent';
-import { InAppNotificationToast } from './components/InAppNotificationToast';
 import { CheckCircle, Cookie, Compass, Sprout, Loader2, AlertTriangle, RefreshCw, Mic, Bot } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
@@ -116,9 +115,6 @@ const MainContent = () => {
           )}
         </main>
 
-        {/* Real-time Field Push Notification Toast Alert */}
-        <InAppNotificationToast />
-
         {/* Krishi Cookie & Storage Consent Banner */}
         <CookieConsent />
 
@@ -206,9 +202,6 @@ const MainContent = () => {
 
       {/* Floating Pill Navigation */}
       <Navigation />
-
-      {/* Real-time Push Notification Toast Alert */}
-      <InAppNotificationToast />
 
       {/* Realtime Live Translation HUD Dock */}
       <LiveTranslationHUD />

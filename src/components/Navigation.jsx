@@ -10,7 +10,6 @@ import {
   Globe, 
   ChevronDown,
   Navigation as NavigationIcon,
-  Bell,
   User,
   LogIn,
   ShieldCheck,
@@ -27,7 +26,6 @@ import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocation } from '../context/LocationContext';
 import { useAuth } from '../context/AuthContext';
-import { NotificationCenter } from './NotificationCenter';
 import { AuthModal } from './AuthModal';
 import { UserProfileModal } from './UserProfileModal';
 import { api } from '../services/api';
@@ -38,43 +36,10 @@ export const Navigation = () => {
   const { locationState, isTracking, setIsTrackerOpen } = useLocation();
   const { user, userProfile, isAuthenticated } = useAuth();
   
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadAlerts, setUnreadAlerts] = useState(2);
-
-  useEffect(() => {
-    const fetchUnread = async () => {
-      try {
-        const res = await api.getNotificationHistory();
-        if (res && typeof res.unread_count === 'number') {
-          setUnreadAlerts(res.unread_count);
-        }
-      } catch (e) {
-        // silent fallback
-      }
-    };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-
-    const handleOpenModal = () => setIsNotifOpen(true);
-    const handlePushAlert = () => {
-      setUnreadAlerts(prev => prev + 1);
-    };
-
-    window.addEventListener('openNotificationCenter', handleOpenModal);
-    window.addEventListener('agrisphere_push_alert', handlePushAlert);
-    window.addEventListener('agrisphere_notification_updated', fetchUnread);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('openNotificationCenter', handleOpenModal);
-      window.removeEventListener('agrisphere_push_alert', handlePushAlert);
-      window.removeEventListener('agrisphere_notification_updated', fetchUnread);
-    };
-  }, [isNotifOpen]);
 
   // 🌟 EXACTLY 4 STREAMLINED CORE MODULES (Clean & Spacious Navbar)
   const navItems = [
@@ -268,22 +233,6 @@ export const Navigation = () => {
                   <span className="hidden sm:inline">Sign In</span>
                 </button>
               )}
-
-              {/* FCM Notification Bell */}
-              <button
-                type="button"
-                onClick={() => setIsNotifOpen(true)}
-                className="relative flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FEFEFA] border border-[#DED8CF] text-[#2C2C24] hover:border-[#5D7052] hover:bg-[#F0EBE5]/60 shadow-sm transition hover:scale-105"
-                title="FCM Field Alerts & Push Notifications"
-                aria-label="Open Field Notifications"
-              >
-                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#5D7052]" />
-                {unreadAlerts > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-[#C18C5D] text-[#FEFEFA] text-[9px] font-bold shadow-sm animate-pulse">
-                    {unreadAlerts}
-                  </span>
-                )}
-              </button>
             </div>
           </div>
 
@@ -350,25 +299,28 @@ export const Navigation = () => {
                     Active: {currentLangObj.native}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                <div className="grid grid-cols-3 gap-1.5 max-h-36 overflow-y-auto pr-1">
                   {supportedLanguages.map((l) => (
                     <button
                       key={l.code}
+                      type="button"
                       onClick={() => setLang(l.code)}
-                      className={`px-2 py-1.5 rounded-xl text-[11px] font-bold transition text-center truncate ${
+                      className={`px-2 py-1.5 rounded-xl text-[11px] font-bold transition flex items-center justify-between notranslate ${
                         lang === l.code
-                          ? 'bg-[#5D7052] text-white shadow-xs'
-                          : 'bg-[#FEFEFA] text-[#2C2C24] border border-[#DED8CF]/60 hover:bg-[#E6DCCD]'
+                          ? 'bg-[#5D7052] text-[#FEFEFA] shadow-xs'
+                          : 'bg-[#FEFEFA] text-[#2C2C24] hover:bg-[#E6DCCD]'
                       }`}
+                      translate="no"
                     >
-                      {l.native}
+                      <span>{l.native}</span>
+                      <span className="text-[9px] uppercase opacity-70">{l.code}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 4 Clean Main Modules */}
-              <div className="grid grid-cols-1 gap-2 max-h-[60vh] overflow-y-auto pr-1">
+              {/* Navigation Links in Drawer */}
+              <div className="space-y-1.5">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const active = isTabActive(item.id);
@@ -380,10 +332,10 @@ export const Navigation = () => {
                         setActiveTab(item.id);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`flex items-center justify-between p-3.5 rounded-2xl text-xs font-bold transition text-left cursor-pointer ${
-                        active
-                          ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft'
-                          : 'bg-[#F0EBE5]/50 text-[#2C2C24] hover:bg-[#E6DCCD] border border-[#DED8CF]/40'
+                      className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all ${
+                        active 
+                          ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft' 
+                          : 'bg-[#FEFEFA] text-[#2C2C24] hover:bg-[#F0EBE5]'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -413,60 +365,33 @@ export const Navigation = () => {
               </div>
 
               {/* Quick Farm & Account Action inside mobile menu */}
-              <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex flex-col gap-2 text-xs">
+              <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex items-center justify-between text-xs">
                 <button
                   type="button"
                   onClick={() => {
-                    setIsNotifOpen(true);
+                    setActiveTab('home');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#5D7052]/10 border border-[#5D7052]/30 text-[#5D7052] font-bold text-left"
+                  className="text-xs font-bold text-[#5D7052] hover:underline"
                 >
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-[#5D7052]" />
-                    <span>Field Advisories & Push Alerts</span>
-                  </div>
-                  {unreadAlerts > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-[#C18C5D] text-white text-[10px] font-bold">
-                      {unreadAlerts} New
-                    </span>
-                  )}
+                  🌐 Public Home
                 </button>
-
-                <div className="flex items-center justify-between pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('home');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="text-xs font-bold text-[#5D7052] hover:underline"
-                  >
-                    🌐 Public Home
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('login');
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="text-xs font-bold text-[#5D7052] hover:underline"
-                  >
-                    👤 {isAuthenticated ? 'Farmer Profile' : 'Sign In / Account'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-[#5D7052] hover:underline"
+                >
+                  👤 {isAuthenticated ? 'Farmer Profile' : 'Sign In / Account'}
+                </button>
               </div>
 
             </div>
           )}
 
         </div>
-
-        {/* Slide-over / Modal FCM Notification Center */}
-        <NotificationCenter 
-          isOpen={isNotifOpen} 
-          onClose={() => setIsNotifOpen(false)} 
-        />
 
         {/* Auth Modal */}
         <AuthModal
