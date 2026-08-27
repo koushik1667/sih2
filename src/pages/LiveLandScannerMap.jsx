@@ -160,6 +160,8 @@ const PRESET_PARCELS = [
   }
 ];
 
+export const PRESET_PLOTS = PRESET_PARCELS;
+
 export const LiveLandScannerMap = () => {
   const { locationState, refreshOnce, isTracking, toggleTracking } = useLocation();
   const { addFarm, showToast, setActiveTab, farms, selectedFarm, setSelectedFarm, sendParcelToGeoSR } = useApp();
@@ -708,7 +710,7 @@ export const LiveLandScannerMap = () => {
                 </button>
               );
             })}
-            {PRESET_PLOTS.map((p, idx) => (
+            {PRESET_PARCELS.map((p, idx) => (
               <button
                 key={idx}
                 type="button"

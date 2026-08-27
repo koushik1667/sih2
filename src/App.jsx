@@ -14,7 +14,52 @@ import { AuthPage } from './pages/AuthPage';
 import { LiveTranslationHUD } from './components/LiveTranslationHUD';
 import { LiveLocationTracker } from './components/LiveLocationTracker';
 import { CookieConsent } from './components/CookieConsent';
-import { CheckCircle, Cookie, Compass, Sprout, Loader2 } from 'lucide-react';
+import { CheckCircle, Cookie, Compass, Sprout, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("AgriSphere UI Caught Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 my-6 max-w-2xl mx-auto rounded-3xl bg-[#FEFEFA] border border-[#A85448]/30 shadow-soft text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#A85448]/10 text-[#A85448] flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-[#2C2C24] font-serif">
+            Something went wrong while rendering this section
+          </h3>
+          <p className="text-xs text-[#78786C] max-w-md mx-auto">
+            {this.state.error?.message || "An unexpected rendering error occurred."}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#5D7052] text-[#FEFEFA] text-xs font-bold shadow-soft hover:bg-[#4D5E44] transition cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reload Application</span>
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const MainContent = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -177,7 +222,9 @@ const MainContent = () => {
 
       {/* Main Page Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-20 sm:pb-8">
-        {renderPage()}
+        <ErrorBoundary>
+          {renderPage()}
+        </ErrorBoundary>
       </main>
 
       {/* Organic Wabi-Sabi Footer */}
