@@ -41,9 +41,9 @@ const QUICK_LOCATIONS = [
 export const WeatherRadar = () => {
   const { t } = useLanguage();
   const { selectedFarm, farms } = useApp();
-  const { locationState, isTracking, toggleTracking, setIsTrackerOpen } = useLocation();
+  const { locationState, isTracking, toggleTracking, refreshOnce, setIsTrackerOpen } = useLocation();
 
-  // If user has live location, default to it; otherwise default to selected farm or first quick location
+  // Always default to user's live GPS coordinates
   const [useLiveGPS, setUseLiveGPS] = useState(true);
   const [selectedQuickLoc, setSelectedQuickLoc] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +55,13 @@ export const WeatherRadar = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pushStatus, setPushStatus] = useState({});
+
+  // Auto-acquire live location on load if not already live
+  useEffect(() => {
+    if (!locationState.isLive && typeof refreshOnce === 'function') {
+      refreshOnce().catch(() => {});
+    }
+  }, []);
 
   const fetchWeather = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
@@ -70,7 +77,7 @@ export const WeatherRadar = () => {
         lat = locationState.coords.latitude;
         lon = locationState.coords.longitude;
         locName = locationState.geoInfo?.displayName || locationState.geoInfo?.town || `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E`;
-        stateName = locationState.geoInfo?.state || 'Telangana';
+        stateName = locationState.geoInfo?.state || 'General';
       } else if (selectedQuickLoc) {
         lat = selectedQuickLoc.lat;
         lon = selectedQuickLoc.lon;
@@ -98,7 +105,7 @@ export const WeatherRadar = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [useLiveGPS, locationState?.coords, selectedQuickLoc, selectedFarm, customLocationName]);
+  }, [useLiveGPS, locationState?.coords, locationState?.geoInfo, selectedQuickLoc, selectedFarm, customLocationName]);
 
   useEffect(() => {
     fetchWeather();
@@ -204,7 +211,7 @@ export const WeatherRadar = () => {
             }`}
           >
             <Compass className={`w-3.5 h-3.5 ${isTracking ? 'animate-spin-slow' : ''}`} />
-            <span>Live GPS ({locationState?.geoInfo?.town || 'Ward 108 Miyapur'})</span>
+            <span>Live GPS ({locationState?.geoInfo?.town || locationState?.geoInfo?.district || (locationState?.coords ? `${locationState.coords.latitude.toFixed(2)}°N, ${locationState.coords.longitude.toFixed(2)}°E` : 'My Live GPS')})</span>
             <span className={`w-2 h-2 rounded-full ${useLiveGPS ? 'bg-[#A8E6CF] animate-ping' : 'bg-[#C18C5D]'}`} />
           </button>
 

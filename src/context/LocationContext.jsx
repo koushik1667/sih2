@@ -30,12 +30,26 @@ export const LocationProvider = ({ children }) => {
     errorMessage: null
   });
 
-  // Start watch on mount if cookie consent exists or user requested
+  // Start watch on mount automatically to acquire live user location
   useEffect(() => {
-    const geoPref = getCookie(COOKIE_KEYS.GEO_TRACKING);
-    if (geoPref === 'enabled') {
-      startTracking();
+    // Check if we have cached coords to immediately display
+    const lastCoords = getCookie(COOKIE_KEYS.LAST_COORDS);
+    if (lastCoords && typeof lastCoords.lat === 'number' && typeof lastCoords.lon === 'number') {
+      const zone = getAgroClimaticZone(lastCoords.lat, lastCoords.lon);
+      setLocationState(prev => ({
+        ...prev,
+        coords: {
+          ...prev.coords,
+          latitude: lastCoords.lat,
+          longitude: lastCoords.lon,
+          accuracy: lastCoords.acc || 10
+        },
+        zone
+      }));
     }
+
+    // Always attempt live GPS acquisition
+    startTracking();
   }, []);
 
   const startTracking = () => {
