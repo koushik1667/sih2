@@ -175,10 +175,17 @@ export const LiveLandScannerMap = () => {
   const searchMarkerRef = useRef(null);
   const labelLayerRef = useRef(null);
 
-  // States
+  // States with persistent localStorage
   const [mapLayer, setMapLayer] = useState('hybrid'); // 'hybrid' | 'satellite' | 'street' | 'topo'
   const [showAreaNames, setShowAreaNames] = useState(true);
-  const [points, setPoints] = useState([]);
+  const [points, setPoints] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_scanner_points');
+      return saved ? JSON.parse(saved) : [];
+    } catch (_) {
+      return [];
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -186,8 +193,44 @@ export const LiveLandScannerMap = () => {
   const [selectedSearchResult, setSelectedSearchResult] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
-  const [scanTelemetry, setScanTelemetry] = useState(null);
-  const [activeUnit, setActiveUnit] = useState('acres'); // 'acres' | 'hectares' | 'gunthas' | 'bighas' | 'sqMeters'
+  const [scanTelemetry, setScanTelemetry] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_scanner_telemetry');
+      return saved ? JSON.parse(saved) : null;
+    } catch (_) {
+      return null;
+    }
+  });
+  const [activeUnit, setActiveUnit] = useState(() => {
+    try {
+      return localStorage.getItem('agrisphere_scanner_unit') || 'acres';
+    } catch (_) {
+      return 'acres';
+    }
+  });
+
+  // Sync points to localStorage
+  useEffect(() => {
+    try {
+      if (points.length > 0) {
+        localStorage.setItem('agrisphere_scanner_points', JSON.stringify(points));
+      } else {
+        localStorage.removeItem('agrisphere_scanner_points');
+      }
+    } catch (_) {}
+  }, [points]);
+
+  // Sync telemetry and unit to localStorage
+  useEffect(() => {
+    try {
+      if (scanTelemetry) {
+        localStorage.setItem('agrisphere_scanner_telemetry', JSON.stringify(scanTelemetry));
+      } else {
+        localStorage.removeItem('agrisphere_scanner_telemetry');
+      }
+      localStorage.setItem('agrisphere_scanner_unit', activeUnit);
+    } catch (_) {}
+  }, [scanTelemetry, activeUnit]);
   const [fieldAddress, setFieldAddress] = useState(null);
   const [savingFarm, setSavingFarm] = useState(false);
   const [copiedCoords, setCopiedCoords] = useState(false);

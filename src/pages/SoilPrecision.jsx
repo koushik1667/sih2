@@ -39,15 +39,27 @@ export const SoilPrecision = () => {
   const { t } = useLanguage();
   const { selectedFarm } = useApp();
 
-  const [crop, setCrop] = useState('Wheat');
-  const [nitrogen, setNitrogen] = useState(165);
-  const [phosphorus, setPhosphorus] = useState(24);
-  const [potassium, setPotassium] = useState(140);
-  const [ph, setPh] = useState(6.8);
-  const [organicCarbon, setOrganicCarbon] = useState(0.85);
-  const [moisture, setMoisture] = useState(35);
+  const getSavedSoil = () => {
+    try {
+      const s = localStorage.getItem('agrisphere_soil_params');
+      return s ? JSON.parse(s) : null;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const savedParams = getSavedSoil();
+
+  const [crop, setCrop] = useState(() => savedParams?.crop || 'Wheat');
+  const [nitrogen, setNitrogen] = useState(() => savedParams?.nitrogen ?? 165);
+  const [phosphorus, setPhosphorus] = useState(() => savedParams?.phosphorus ?? 24);
+  const [potassium, setPotassium] = useState(() => savedParams?.potassium ?? 140);
+  const [ph, setPh] = useState(() => savedParams?.ph ?? 6.8);
+  const [organicCarbon, setOrganicCarbon] = useState(() => savedParams?.organicCarbon ?? 0.85);
+  const [moisture, setMoisture] = useState(() => savedParams?.moisture ?? 35);
 
   const [scoreData, setScoreData] = useState(() => {
+    if (savedParams?.scoreData) return savedParams.scoreData;
     const local = calcSoilScoreLocal(165, 24, 140, 6.8, 0.85);
     const eco = CROP_ECONOMICS['Wheat'];
     const healthMultiplier = local.score >= 80 ? 1.15 : local.score >= 60 ? 0.95 : 0.75;
@@ -70,6 +82,7 @@ export const SoilPrecision = () => {
   });
 
   const [depletionData, setDepletionData] = useState(() => {
+    if (savedParams?.depletionData) return savedParams.depletionData;
     return {
       monoculture_drawdown: [
         { season: 'Season 1 (Wheat)', nitrogen: 133, phosphorus: 19, potassium: 122, soil_health_score: 67 },
@@ -85,6 +98,7 @@ export const SoilPrecision = () => {
   });
 
   const [rotationData, setRotationData] = useState(() => {
+    if (savedParams?.rotationData) return savedParams.rotationData;
     return {
       recommended_rotation: {
         next_crop: "Chickpea (Gram / Chana)",
@@ -94,6 +108,25 @@ export const SoilPrecision = () => {
       }
     };
   });
+
+  // Persist all soil parameters and results to localStorage
+  useEffect(() => {
+    try {
+      const dataToSave = {
+        crop,
+        nitrogen,
+        phosphorus,
+        potassium,
+        ph,
+        organicCarbon,
+        moisture,
+        scoreData,
+        depletionData,
+        rotationData
+      };
+      localStorage.setItem('agrisphere_soil_params', JSON.stringify(dataToSave));
+    } catch (_) {}
+  }, [crop, nitrogen, phosphorus, potassium, ph, organicCarbon, moisture, scoreData, depletionData, rotationData]);
 
   const [loading, setLoading] = useState(false);
 

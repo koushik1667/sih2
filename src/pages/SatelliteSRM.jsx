@@ -42,9 +42,27 @@ export const SatelliteSRM = () => {
   const { t } = useLanguage();
   const { selectedParcelForSRM, setSelectedParcelForSRM, showToast } = useApp();
   const [presets, setPresets] = useState(Object.values(PRESETS_DATA));
-  const [selectedPresetId, setSelectedPresetId] = useState('punjab_wheat_belt');
-  const [selectedModel, setSelectedModel] = useState('edsr');
-  const [scaleFactor, setScaleFactor] = useState(4);
+  const [selectedPresetId, setSelectedPresetId] = useState(() => {
+    try {
+      return localStorage.getItem('agrisphere_srm_preset') || 'punjab_wheat_belt';
+    } catch (_) {
+      return 'punjab_wheat_belt';
+    }
+  });
+  const [selectedModel, setSelectedModel] = useState(() => {
+    try {
+      return localStorage.getItem('agrisphere_srm_model') || 'edsr';
+    } catch (_) {
+      return 'edsr';
+    }
+  });
+  const [scaleFactor, setScaleFactor] = useState(() => {
+    try {
+      return Number(localStorage.getItem('agrisphere_srm_scale')) || 4;
+    } catch (_) {
+      return 4;
+    }
+  });
   
   // Custom file upload states
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -53,10 +71,26 @@ export const SatelliteSRM = () => {
   
   const [loading, setLoading] = useState(false);
   const [inferenceResult, setInferenceResult] = useState(null);
-  const [activeLayer, setActiveLayer] = useState('rgb'); // 'rgb', 'ndvi', 'nir', 'uncertainty', 'parcel_mask'
+  const [activeLayer, setActiveLayer] = useState(() => {
+    try {
+      return localStorage.getItem('agrisphere_srm_layer') || 'rgb';
+    } catch (_) {
+      return 'rgb';
+    }
+  }); // 'rgb', 'ndvi', 'nir', 'uncertainty', 'parcel_mask'
   const [error, setError] = useState(null);
   const [downloadedFormat, setDownloadedFormat] = useState(null);
   const [latencyMs, setLatencyMs] = useState(118);
+
+  // Sync settings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('agrisphere_srm_preset', selectedPresetId);
+      localStorage.setItem('agrisphere_srm_model', selectedModel);
+      localStorage.setItem('agrisphere_srm_scale', scaleFactor.toString());
+      localStorage.setItem('agrisphere_srm_layer', activeLayer);
+    } catch (_) {}
+  }, [selectedPresetId, selectedModel, scaleFactor, activeLayer]);
 
   // Active scene metadata
   const currentPreset = !uploadedFile && !selectedParcelForSRM ? (PRESETS_DATA[selectedPresetId] || PRESETS_DATA.punjab_wheat_belt) : null;

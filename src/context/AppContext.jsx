@@ -86,10 +86,47 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [backendHealth, setBackendHealth] = useState({ status: 'healthy', version: '2.0.0' });
   const [toast, setToast] = useState(null);
-  const [chatMessages, setChatMessages] = useState([DEFAULT_WELCOME_MESSAGE]);
+
+  // Chat messages with persistent local storage
+  const [chatMessages, setChatMessagesState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_chat_messages');
+      return saved ? JSON.parse(saved) : [DEFAULT_WELCOME_MESSAGE];
+    } catch (_) {
+      return [DEFAULT_WELCOME_MESSAGE];
+    }
+  });
+
+  const setChatMessages = (updater) => {
+    setChatMessagesState(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      try {
+        localStorage.setItem('agrisphere_chat_messages', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
+  };
 
   // Parcel selected from Land Measure scanner for automatic GeoSR-AI analysis & reporting
-  const [selectedParcelForSRM, setSelectedParcelForSRM] = useState(null);
+  const [selectedParcelForSRM, setSelectedParcelForSRMState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_selected_parcel_srm');
+      return saved ? JSON.parse(saved) : null;
+    } catch (_) {
+      return null;
+    }
+  });
+
+  const setSelectedParcelForSRM = (parcel) => {
+    setSelectedParcelForSRMState(parcel);
+    try {
+      if (parcel) {
+        localStorage.setItem('agrisphere_selected_parcel_srm', JSON.stringify(parcel));
+      } else {
+        localStorage.removeItem('agrisphere_selected_parcel_srm');
+      }
+    } catch (_) {}
+  };
 
   const sendParcelToGeoSR = (parcelData) => {
     setSelectedParcelForSRM(parcelData);
