@@ -264,33 +264,64 @@ function shouldSkipNode(node) {
 
 /**
  * Instant dictionary, substring or cached lookup (0ms)
+ * Supports bidirectional translation (English <-> All Regional Languages)
  */
 export function lookupFastTranslation(text, targetLang) {
-  if (!text || targetLang === 'en') return text;
+  if (!text) return text;
   const trimmed = text.trim();
   if (!trimmed || /^[0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹+\-×÷=]+$/.test(trimmed)) {
     return text;
   }
 
-  // 1. Direct dictionary match
+  // 1. If target is English, perform high-precision reverse lookup
+  if (targetLang === 'en') {
+    // 1a. Direct Reverse Map
+    for (const [enKey, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
+      if (enKey.toLowerCase() === trimmed.toLowerCase()) return enKey;
+      for (const val of Object.values(map)) {
+        if (typeof val === 'string' && val.toLowerCase() === trimmed.toLowerCase()) {
+          return enKey;
+        }
+      }
+    }
+
+    // 1b. Reverse Tokenized Substring Replacer
+    let reverseReplaced = trimmed;
+    let hasRevReplacement = false;
+    for (const [enKey, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
+      for (const val of Object.values(map)) {
+        if (typeof val === 'string' && val.length > 2 && reverseReplaced.includes(val)) {
+          reverseReplaced = reverseReplaced.split(val).join(enKey);
+          hasRevReplacement = true;
+        }
+      }
+    }
+    if (hasRevReplacement) {
+      return reverseReplaced;
+    }
+
+    return trimmed;
+  }
+
+  // 2. Direct forward dictionary match (en -> targetLang)
   if (CLIENT_TRANSLATION_MAP[trimmed] && CLIENT_TRANSLATION_MAP[trimmed][targetLang]) {
     return CLIENT_TRANSLATION_MAP[trimmed][targetLang];
   }
 
-  // 2. Case-insensitive dictionary match
+  // 3. Case-insensitive forward dictionary match
   for (const [key, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
     if (key.toLowerCase() === trimmed.toLowerCase() && map[targetLang]) {
       return map[targetLang];
     }
   }
 
-  // 3. Memory cache
+  // 4. Memory cache
   const cacheKey = `${targetLang}:${trimmed}`;
   if (dynamicTranslationCache.has(cacheKey)) {
     return dynamicTranslationCache.get(cacheKey);
   }
 
-  // 4. Tokenized Substring Replacer (e.g. "8.849 Acres", "Wheat (8.5 Q/Ac)", "Soil Health: 78")
+  // 5. Tokenized Substring Replacer (e.g. "8.849 Acres", "Wheat (8.5 Q/Ac)", "Soil Health: 78")
   let tokenReplaced = trimmed;
   let hasReplacement = false;
   for (const [key, map] of Object.entries(CLIENT_TRANSLATION_MAP)) {
@@ -318,18 +349,29 @@ function translateTextNode(node, targetLang) {
   const raw = node.nodeValue;
   if (!raw || !raw.trim()) return;
 
-  // Stash original English text on node
-  if (!node.__agriOriginalText) {
+  // Stash original English text on node if first time seeing English
+  if (!node.__agriOriginalText && /^[a-zA-Z0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•₹]+$/.test(raw.trim())) {
     node.__agriOriginalText = raw;
   }
 
-  const origText = node.__agriOriginalText;
+  const origText = node.__agriOriginalText || raw;
   if (!origText || !origText.trim()) return;
 
-  // If target is English, restore original
+  // If target is English, restore original English text or reverse-translate
   if (targetLang === 'en') {
-    if (node.nodeValue !== origText) {
-      node.nodeValue = origText;
+    if (node.__agriOriginalText) {
+      if (node.nodeValue !== node.__agriOriginalText) {
+        node.nodeValue = node.__agriOriginalText;
+      }
+      return;
+    }
+
+    const reverseMatch = lookupFastTranslation(raw, 'en');
+    if (reverseMatch && reverseMatch !== raw.trim()) {
+      const leading = raw.match(/^\s*/)?.[0] || '';
+      const trailing = raw.match(/\s*$/)?.[0] || '';
+      node.nodeValue = `${leading}${reverseMatch}${trailing}`;
+      node.__agriOriginalText = node.nodeValue;
     }
     return;
   }
