@@ -58,7 +58,22 @@ export const Navigation = () => {
     };
     fetchUnread();
     const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
+
+    const handleOpenModal = () => setIsNotifOpen(true);
+    const handlePushAlert = () => {
+      setUnreadAlerts(prev => prev + 1);
+    };
+
+    window.addEventListener('openNotificationCenter', handleOpenModal);
+    window.addEventListener('agrisphere_push_alert', handlePushAlert);
+    window.addEventListener('agrisphere_notification_updated', fetchUnread);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('openNotificationCenter', handleOpenModal);
+      window.removeEventListener('agrisphere_push_alert', handlePushAlert);
+      window.removeEventListener('agrisphere_notification_updated', fetchUnread);
+    };
   }, [isNotifOpen]);
 
   // 🌟 EXACTLY 4 STREAMLINED CORE MODULES (Clean & Spacious Navbar)
@@ -398,27 +413,48 @@ export const Navigation = () => {
               </div>
 
               {/* Quick Farm & Account Action inside mobile menu */}
-              <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex items-center justify-between text-xs">
+              <div className="mt-3 pt-2.5 border-t border-[#DED8CF]/60 flex flex-col gap-2 text-xs">
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveTab('home');
+                    setIsNotifOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="text-xs font-bold text-[#5D7052] hover:underline"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#5D7052]/10 border border-[#5D7052]/30 text-[#5D7052] font-bold text-left"
                 >
-                  🌐 Public Home
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-[#5D7052]" />
+                    <span>Field Advisories & Push Alerts</span>
+                  </div>
+                  {unreadAlerts > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#C18C5D] text-white text-[10px] font-bold">
+                      {unreadAlerts} New
+                    </span>
+                  )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="text-xs font-bold text-[#5D7052] hover:underline"
-                >
-                  👤 {isAuthenticated ? 'Farmer Profile' : 'Sign In / Account'}
-                </button>
+
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('home');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-xs font-bold text-[#5D7052] hover:underline"
+                  >
+                    🌐 Public Home
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('login');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-xs font-bold text-[#5D7052] hover:underline"
+                  >
+                    👤 {isAuthenticated ? 'Farmer Profile' : 'Sign In / Account'}
+                  </button>
+                </div>
               </div>
 
             </div>

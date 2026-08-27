@@ -615,9 +615,14 @@ export const WeatherRadar = () => {
                 Real-time advisories dispatched to farmer mobile apps and field push devices
               </p>
             </div>
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#C18C5D]/15 text-[#C18C5D] border border-[#C18C5D]/30 self-start sm:self-auto">
-              FCM HTTP v1 Alert Hub
-            </span>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('openNotificationCenter'))}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-[#C18C5D]/15 hover:bg-[#C18C5D]/25 text-[#C18C5D] border border-[#C18C5D]/30 transition self-start sm:self-auto cursor-pointer shadow-xs"
+              title="Open FCM Notification & Alert Center"
+            >
+              <Radio className="w-3 h-3 text-[#C18C5D] animate-pulse" />
+              <span>FCM HTTP v1 Alert Hub</span>
+            </button>
           </div>
 
           <div className="space-y-3.5">

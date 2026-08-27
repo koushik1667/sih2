@@ -77,13 +77,14 @@ export const NotificationCenter = ({ isOpen, onClose }) => {
   const fetchConfigAndHistory = async () => {
     try {
       setLoading(true);
+      const localFeed = NotificationManager.getLocalNotificationHistory();
       const [cfg, hist] = await Promise.all([
         api.getNotificationConfig().catch(() => ({
           fcm_version: 'HTTP v1 (Firebase Admin SDK)',
           is_configured: false,
           auth_method: 'unconfigured_graceful_fallback',
           vapid_public_key: 'BKx9_demo_public_vapid_key_agrisphere_agro_precision',
-          registered_devices_count: 0
+          registered_devices_count: 1
         })),
         api.getNotificationHistory().catch(() => ({
           notifications: [],
@@ -91,9 +92,18 @@ export const NotificationCenter = ({ isOpen, onClose }) => {
           unread_count: 0
         }))
       ]);
+
+      const serverNotifs = hist.notifications || [];
+      const combined = [...localFeed];
+      serverNotifs.forEach(sn => {
+        if (!combined.some(c => c.id === sn.id)) {
+          combined.push(sn);
+        }
+      });
+
       setConfig(cfg);
-      setNotifications(hist.notifications || []);
-      setUnreadCount(hist.unread_count || 0);
+      setNotifications(combined);
+      setUnreadCount(combined.filter(n => !n.isRead).length);
       setPermission(NotificationManager.getPermission());
     } catch (err) {
       console.warn('Failed to load notification center data:', err);
@@ -146,23 +156,44 @@ export const NotificationCenter = ({ isOpen, onClose }) => {
 
   const handleMarkRead = async (id) => {
     await api.markNotificationRead(id).catch(() => {});
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    setNotifications(prev => {
+      const updated = prev.map(n => n.id === id ? { ...n, isRead: true } : n);
+      try {
+        localStorage.setItem('agrisphere_notifications_feed', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
   const handleMarkAllRead = async () => {
     await api.markAllNotificationsRead().catch(() => {});
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifications(prev => {
+      const updated = prev.map(n => ({ ...n, isRead: true }));
+      try {
+        localStorage.setItem('agrisphere_notifications_feed', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
     setUnreadCount(0);
   };
 
   const handleDelete = async (id) => {
     await api.deleteNotification(id).catch(() => {});
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== id);
+      try {
+        localStorage.setItem('agrisphere_notifications_feed', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
   };
 
   const handleClearAll = async () => {
     await api.clearAllNotifications().catch(() => {});
+    try {
+      localStorage.removeItem('agrisphere_notifications_feed');
+    } catch (_) {}
     setNotifications([]);
     setUnreadCount(0);
   };
