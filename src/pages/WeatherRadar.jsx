@@ -28,6 +28,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useApp } from '../context/AppContext';
 import { useLocation } from '../context/LocationContext';
 import { NotificationManager } from '../services/notificationManager';
+import { searchLocations } from '../services/geoService';
 
 const QUICK_LOCATIONS = [
   { name: 'Ward 108 Miyapur (Hyderabad, TG)', lat: 17.4933, lon: 78.3424, state: 'Telangana', tag: 'Deccan Zone' },
@@ -124,12 +125,30 @@ export const WeatherRadar = () => {
     setCustomLocationName(farm.location);
   };
 
-  const handleCustomSearch = (e) => {
+  const handleCustomSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     setUseLiveGPS(false);
-    setSelectedQuickLoc(null);
-    setCustomLocationName(searchQuery.trim());
+    
+    try {
+      const results = await searchLocations(searchQuery.trim());
+      if (results && results.length > 0) {
+        const top = results[0];
+        setSelectedQuickLoc({
+          name: top.displayName,
+          lat: top.lat,
+          lon: top.lon,
+          state: top.state || 'India'
+        });
+        setCustomLocationName(top.displayName);
+      } else {
+        setSelectedQuickLoc(null);
+        setCustomLocationName(searchQuery.trim());
+      }
+    } catch {
+      setSelectedQuickLoc(null);
+      setCustomLocationName(searchQuery.trim());
+    }
     setIsSearching(false);
   };
 

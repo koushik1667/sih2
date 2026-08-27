@@ -6,86 +6,137 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  updateProfile,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  db,
-  doc,
-  setDoc,
-  getDoc,
-  serverTimestamp
+  updateProfile, 
+  onAuthStateChanged, 
+  sendPasswordResetEmail, 
+  db, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  onSnapshot, 
+  serverTimestamp 
 } from '../lib/firebase';
 
 const AuthContext = createContext();
 
+const CACHE_USER_KEY = 'agrisphere_cached_user';
+const CACHE_PROFILE_KEY = 'agrisphere_cached_profile';
+
+const getInitialCachedUser = () => {
+  try {
+    const raw = localStorage.getItem(CACHE_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+const getInitialCachedProfile = () => {
+  try {
+    const raw = localStorage.getItem(CACHE_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const [user, setUser] = useState(getInitialCachedUser);
+  const [userProfile, setUserProfile] = useState(getInitialCachedProfile);
+  // If we have cached credentials, don't flash a login screen, keep loading till Firebase verifies
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  // Sync user profile to Firestore
+  // Sync user profile to Firestore & local cache
   const syncUserProfile = async (firebaseUser, additionalData = {}) => {
     if (!firebaseUser) return null;
+
+    const baseData = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: additionalData.displayName || firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Farmer'),
+      photoURL: firebaseUser.photoURL || null,
+      updatedAt: serverTimestamp(),
+      role: 'farmer',
+      state: additionalData.state || 'Punjab',
+      preferredCrop: additionalData.preferredCrop || 'Wheat',
+      preferredLanguage: additionalData.preferredLanguage || 'hi',
+      ...additionalData
+    };
+
+    // Optimistically update local profile state
+    setUserProfile(prev => ({ ...(prev || {}), ...baseData }));
+    try {
+      localStorage.setItem(CACHE_PROFILE_KEY, JSON.stringify({ ...baseData }));
+    } catch (e) {}
+
+    // Persist to Firestore with merge: true (handles offline & online automatically)
     try {
       const userRef = doc(db, 'users', firebaseUser.uid);
-      const userSnap = await getDoc(userRef);
-      
-      const baseData = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: additionalData.displayName || firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Farmer'),
-        photoURL: firebaseUser.photoURL || null,
-        updatedAt: serverTimestamp(),
-        ...additionalData
-      };
-
-      if (!userSnap.exists()) {
-        // Initial setup
-        const initialDoc = {
-          ...baseData,
-          createdAt: serverTimestamp(),
-          role: 'farmer',
-          phone: additionalData.phone || '',
-          state: additionalData.state || 'Punjab',
-          preferredCrop: additionalData.preferredCrop || 'Wheat',
-          preferredLanguage: additionalData.preferredLanguage || 'hi'
-        };
-        await setDoc(userRef, initialDoc, { merge: true });
-        setUserProfile(initialDoc);
-        return initialDoc;
-      } else {
-        await setDoc(userRef, baseData, { merge: true });
-        const merged = { ...userSnap.data(), ...baseData };
-        setUserProfile(merged);
-        return merged;
-      }
+      await setDoc(userRef, baseData, { merge: true });
     } catch (err) {
-      console.error("Error syncing user profile to Firestore:", err);
-      // Fallback local representation
-      const fallback = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName || 'Farmer',
-        photoURL: firebaseUser.photoURL || null
-      };
-      setUserProfile(fallback);
-      return fallback;
+      // Soft notice if offline or initializing
+      console.warn("Firestore user profile offline queue notice:", err?.message || err);
     }
+
+    return baseData;
   };
 
   useEffect(() => {
+    let profileUnsubscribe = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+      if (profileUnsubscribe) {
+        profileUnsubscribe();
+        profileUnsubscribe = null;
+      }
+
       if (currentUser) {
-        await syncUserProfile(currentUser);
+        setUser(currentUser);
+        const cachedBase = {
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Farmer'),
+          photoURL: currentUser.photoURL || null
+        };
+        
+        try {
+          localStorage.setItem(CACHE_USER_KEY, JSON.stringify(cachedBase));
+        } catch (e) {}
+
+        // Listen in real-time to the user profile document in Firestore (handles cache & offline natively)
+        const userRef = doc(db, 'users', currentUser.uid);
+        profileUnsubscribe = onSnapshot(userRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            setUserProfile(prev => ({ ...(prev || {}), ...data }));
+            try {
+              localStorage.setItem(CACHE_PROFILE_KEY, JSON.stringify(data));
+            } catch (e) {}
+          }
+        }, (err) => {
+          console.warn("Firestore profile sync notice (offline or network initializing):", err?.message || err);
+        });
+
+        // Background write
+        syncUserProfile(currentUser).catch((e) => {
+          console.warn("Profile background sync notice:", e?.message || e);
+        });
       } else {
+        setUser(null);
         setUserProfile(null);
+        try {
+          localStorage.removeItem(CACHE_USER_KEY);
+          localStorage.removeItem(CACHE_PROFILE_KEY);
+        } catch (e) {}
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (profileUnsubscribe) profileUnsubscribe();
+    };
   }, []);
 
   // Google Login

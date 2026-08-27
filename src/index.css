@@ -9,6 +9,17 @@
     --text-primary: #2C2C24;
     --text-muted: #78786C;
   }
+
+  html {
+    font-size: 14.5px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 13.5px;
+    }
+  }
 }
 
 body {
@@ -17,6 +28,8 @@ body {
   font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 /* Subtle Fixed Paper Grain / Noise Texture Overlay */

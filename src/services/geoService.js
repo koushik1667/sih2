@@ -2,7 +2,7 @@
 import { setCookie, COOKIE_KEYS } from '../utils/cookies';
 
 // 15 ICAR Agro-Climatic Zones of India
-const AGRO_CLIMATIC_ZONES = [
+export const AGRO_CLIMATIC_ZONES = [
   { id: 1, name: "Western Himalayan Region", states: ["Jammu & Kashmir", "Himachal Pradesh", "Uttarakhand"], latMin: 29.5, latMax: 37.0, lonMin: 73.0, lonMax: 81.0, majorCrops: "Apple, Walnut, Maize, Saffron, Wheat" },
   { id: 2, name: "Eastern Himalayan Region", states: ["Assam", "Sikkim", "Arunachal Pradesh", "Nagaland", "Meghalaya"], latMin: 22.0, latMax: 29.5, lonMin: 88.0, lonMax: 97.5, majorCrops: "Tea, Rice, Jute, Ginger, Citrus" },
   { id: 3, name: "Lower Gangetic Plains Region", states: ["West Bengal"], latMin: 21.5, latMax: 27.5, lonMin: 85.5, lonMax: 89.8, majorCrops: "Rice, Jute, Mustard, Potato" },
@@ -20,6 +20,45 @@ const AGRO_CLIMATIC_ZONES = [
   { id: 15, name: "The Islands Region", states: ["Andaman & Nicobar", "Lakshadweep"], latMin: 6.5, latMax: 14.0, lonMin: 71.0, lonMax: 94.0, majorCrops: "Coconut, Arecanut, Cassava, Spices" }
 ];
 
+// Rich Offline Indian Agrarian Database for instant fallback search
+export const INDIAN_AGRICULTURAL_PLACES = [
+  { name: "Ludhiana (PAU Research Belt)", town: "Ludhiana", district: "Ludhiana", state: "Punjab", lat: 30.9010, lon: 75.8573, tag: "Wheat & Paddy Hub" },
+  { name: "Bhatinda Cotton & Wheat Mandi", town: "Bhatinda", district: "Bathinda", state: "Punjab", lat: 30.2110, lon: 74.9455, tag: "Malwa Cotton Belt" },
+  { name: "Karnal (CSSRI Soil Research)", town: "Karnal", district: "Karnal", state: "Haryana", lat: 29.6857, lon: 76.9905, tag: "Basmati Rice & Wheat" },
+  { name: "Hisar Agricultural University", town: "Hisar", district: "Hisar", state: "Haryana", lat: 29.1492, lon: 75.7217, tag: "Cotton & Oilseeds" },
+  { name: "Meerut Sugarcane Belt", town: "Meerut", district: "Meerut", state: "Uttar Pradesh", lat: 28.9845, lon: 77.7064, tag: "Sugarcane & Potato" },
+  { name: "Varanasi Gangetic Plains", town: "Varanasi", district: "Varanasi", state: "Uttar Pradesh", lat: 25.3176, lon: 82.9739, tag: "Paddy & Vegetables" },
+  { name: "Gorakhpur Agricultural Belt", town: "Gorakhpur", district: "Gorakhpur", state: "Uttar Pradesh", lat: 26.7606, lon: 83.3732, tag: "Sugarcane & Rice" },
+  { name: "Patna / Nalanda Farmlands", town: "Patna", district: "Patna", state: "Bihar", lat: 25.5941, lon: 85.1376, tag: "Rice, Maize & Pulses" },
+  { name: "Indore Malwa Soybean Region", town: "Indore", district: "Indore", state: "Madhya Pradesh", lat: 22.7196, lon: 75.8577, tag: "Soybean & Wheat" },
+  { name: "Ujjain Agro Belt", town: "Ujjain", district: "Ujjain", state: "Madhya Pradesh", lat: 23.1765, lon: 75.7885, tag: "Soybean & Gram" },
+  { name: "Nashik Precision Vineyard Parcel", town: "Nashik", district: "Nashik", state: "Maharashtra", lat: 20.0050, lon: 73.7820, tag: "Grapes, Onion & Tomato" },
+  { name: "Pune / Baramati Sugarcane", town: "Baramati", district: "Pune", state: "Maharashtra", lat: 18.1517, lon: 74.5771, tag: "Sugarcane & Dairy" },
+  { name: "Nagpur Orange & Cotton Belt", town: "Nagpur", district: "Nagpur", state: "Maharashtra", lat: 21.1458, lon: 79.0882, tag: "Citrus & Cotton" },
+  { name: "Kolhapur Sugar & Jaggery Region", town: "Kolhapur", district: "Kolhapur", state: "Maharashtra", lat: 16.7050, lon: 74.2433, tag: "Sugarcane & Turmeric" },
+  { name: "Rajkot Groundnut & Cotton Hub", town: "Rajkot", district: "Rajkot", state: "Gujarat", lat: 22.3039, lon: 70.8022, tag: "Saurashtra Groundnut" },
+  { name: "Anand Dairy & Spices Belt", town: "Anand", district: "Anand", state: "Gujarat", lat: 22.5645, lon: 72.9289, tag: "Tobacco & Dairy" },
+  { name: "Warangal Cotton Farm Boundary", town: "Warangal", district: "Warangal", state: "Telangana", lat: 17.9780, lon: 79.5940, tag: "Cotton & Chillies" },
+  { name: "Hyderabad / Miyapur Farmlands", town: "Miyapur", district: "Hyderabad", state: "Telangana", lat: 17.4933, lon: 78.3424, tag: "Deccan Agro Zone" },
+  { name: "Karimnagar Paddy & Maize", town: "Karimnagar", district: "Karimnagar", state: "Telangana", lat: 18.4386, lon: 79.1288, tag: "Rice Granary" },
+  { name: "Guntur Chilli & Tobacco Yard", town: "Guntur", district: "Guntur", state: "Andhra Pradesh", lat: 16.3067, lon: 80.4365, tag: "Asia's Largest Chilli Mandi" },
+  { name: "East Godavari Paddy Delta (Rajahmundry)", town: "Rajahmundry", district: "East Godavari", state: "Andhra Pradesh", lat: 16.9891, lon: 82.2475, tag: "Godavari Paddy Delta" },
+  { name: "Anantapur Groundnut Belt", town: "Anantapur", district: "Anantapur", state: "Andhra Pradesh", lat: 14.6819, lon: 77.6006, tag: "Groundnut & Millets" },
+  { name: "Mandya / Mysuru Sugarcane & Paddy", town: "Mandya", district: "Mandya", state: "Karnataka", lat: 12.5230, lon: 76.8970, tag: "Cauvery Basin Farming" },
+  { name: "Belagavi Sugar & Maize", town: "Belagavi", district: "Belagavi", state: "Karnataka", lat: 15.8497, lon: 74.4977, tag: "Sugarcane & Vegetables" },
+  { name: "Coimbatore / Pollachi Coconut Belt", town: "Pollachi", district: "Coimbatore", state: "Tamil Nadu", lat: 10.6609, lon: 77.0048, tag: "Coconut, Tea & Poultry" },
+  { name: "Thanjavur Kaveri Delta Granary", town: "Thanjavur", district: "Thanjavur", state: "Tamil Nadu", lat: 10.7870, lon: 79.1378, tag: "Rice Bowl of TN" },
+  { name: "Madurai Jasmine & Paddy", town: "Madurai", district: "Madurai", state: "Tamil Nadu", lat: 9.9252, lon: 78.1198, tag: "Floriculture & Paddy" },
+  { name: "Jaipur / Sikar Mustard & Guar", town: "Sikar", district: "Sikar", state: "Rajasthan", lat: 27.6094, lon: 75.1398, tag: "Mustard, Guar & Bajra" },
+  { name: "Kota Soybean & Coriander", town: "Kota", district: "Kota", state: "Rajasthan", lat: 25.2138, lon: 75.8648, tag: "Chambal Valley Irrigation" },
+  { name: "Burdwan (Rice Bowl of Bengal)", town: "Bardhaman", district: "Purba Bardhaman", state: "West Bengal", lat: 23.2324, lon: 87.8615, tag: "Paddy & Jute Belt" },
+  { name: "Cuttack / Mahanadi Delta", town: "Cuttack", district: "Cuttack", state: "Odisha", lat: 20.4625, lon: 85.8828, tag: "Paddy & Pulses" },
+  { name: "Raipur Chhattisgarh Rice Plains", town: "Raipur", district: "Raipur", state: "Chhattisgarh", lat: 21.2514, lon: 81.6296, tag: "Dhan Ka Katora" },
+  { name: "Palakkad Paddy Granary", town: "Palakkad", district: "Palakkad", state: "Kerala", lat: 10.7867, lon: 76.6548, tag: "Paddy & Spices" },
+  { name: "Jorhat Tea Research Hub", town: "Jorhat", district: "Jorhat", state: "Assam", lat: 26.7509, lon: 94.2037, tag: "Tea & Jute" },
+  { name: "Shimla Apple Orchard Belt", town: "Theog / Shimla", district: "Shimla", state: "Himachal Pradesh", lat: 31.1048, lon: 77.1734, tag: "Apple & Temperate Fruit" }
+];
+
 let watchId = null;
 const reverseGeocodeCache = new Map();
 
@@ -32,10 +71,158 @@ export function getAgroClimaticZone(lat, lon) {
       return zone;
     }
   }
-  // Default to Trans-Gangetic if in Northern Plains or Central Plateau if in central
   if (lat > 27) return AGRO_CLIMATIC_ZONES[5]; // Trans-Gangetic
   if (lat > 20) return AGRO_CLIMATIC_ZONES[7]; // Central
   return AGRO_CLIMATIC_ZONES[9]; // Southern
+}
+
+/**
+ * Parses coordinate text strings in different formats:
+ * - "30.9010, 75.8573"
+ * - "30.9010 75.8573"
+ * - "30.9010N, 75.8573E"
+ */
+export function parseCoordinatesString(query) {
+  if (!query || typeof query !== 'string') return null;
+  const clean = query.trim().replace(/[°NWSEnwse]/g, '');
+  const match = clean.match(/^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)[,\s]+[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/);
+  if (match) {
+    const parts = clean.split(/[,\s]+/).map(p => parseFloat(p.trim())).filter(n => !isNaN(n));
+    if (parts.length >= 2) {
+      const lat = parts[0];
+      const lon = parts[1];
+      if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        return { lat, lon, isCoordinate: true };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Multi-Source Geocoding Search:
+ * 1. Coordinates check
+ * 2. Photon API (OpenStreetMap-powered, CORS friendly, ultra-fast for Indian locations)
+ * 3. Nominatim OpenStreetMap fallback
+ * 4. Rich Indian Agrarian Database fuzzy search
+ */
+export async function searchLocations(query) {
+  if (!query || !query.trim()) return [];
+  const q = query.trim();
+
+  // 1. Direct coordinate string check
+  const coordResult = parseCoordinatesString(q);
+  if (coordResult) {
+    const zone = getAgroClimaticZone(coordResult.lat, coordResult.lon);
+    return [{
+      displayName: `Coordinates: ${coordResult.lat.toFixed(5)}°N, ${coordResult.lon.toFixed(5)}°E`,
+      town: "Target Coordinates",
+      district: zone.name,
+      state: zone.states[0] || "India",
+      lat: coordResult.lat,
+      lon: coordResult.lon,
+      tag: "GPS Pin",
+      isExactCoord: true
+    }];
+  }
+
+  const results = [];
+  const seenKeys = new Set();
+
+  // 2. Query Photon Komoot API (High reliability & fast for Indian towns/villages)
+  try {
+    const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lat=20.5937&lon=78.9629`;
+    const res = await fetch(photonUrl, { headers: { 'Accept': 'application/json' } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.features && data.features.length > 0) {
+        data.features.forEach((feat) => {
+          const props = feat.properties || {};
+          const coords = feat.geometry?.coordinates || [];
+          if (coords.length >= 2) {
+            const lon = coords[0];
+            const lat = coords[1];
+            const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              const name = props.name || props.city || props.town || props.village || q;
+              const state = props.state || props.country || "India";
+              const district = props.district || props.county || props.city || "";
+              const display = [name, district, state].filter(Boolean).join(", ");
+              results.push({
+                displayName: display,
+                town: name,
+                district: district || name,
+                state: state,
+                lat: lat,
+                lon: lon,
+                tag: props.osm_value || props.type || "Agrarian Location"
+              });
+            }
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("Photon search service unavailable, falling back to agrarian index:", err);
+  }
+
+  // 3. Match from built-in Indian Agricultural Database
+  const lowerQ = q.toLowerCase();
+  const matchedLocal = INDIAN_AGRICULTURAL_PLACES.filter(place => 
+    place.name.toLowerCase().includes(lowerQ) ||
+    place.town.toLowerCase().includes(lowerQ) ||
+    place.district.toLowerCase().includes(lowerQ) ||
+    place.state.toLowerCase().includes(lowerQ) ||
+    place.tag.toLowerCase().includes(lowerQ)
+  );
+
+  matchedLocal.forEach(place => {
+    const key = `${place.lat.toFixed(3)},${place.lon.toFixed(3)}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      results.push({
+        displayName: `${place.name}, ${place.state}`,
+        town: place.town,
+        district: place.district,
+        state: place.state,
+        lat: place.lat,
+        lon: place.lon,
+        tag: place.tag
+      });
+    }
+  });
+
+  // 4. Nominatim as secondary API if needed
+  if (results.length === 0) {
+    try {
+      const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + (q.toLowerCase().includes('india') ? '' : ', India'))}&limit=4&addressdetails=1`;
+      const nomRes = await fetch(nomUrl, { headers: { 'Accept-Language': 'en' } });
+      if (nomRes.ok) {
+        const nomData = await nomRes.json();
+        nomData.forEach(item => {
+          const lat = parseFloat(item.lat);
+          const lon = parseFloat(item.lon);
+          const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            const addr = item.address || {};
+            results.push({
+              displayName: item.display_name,
+              town: addr.village || addr.town || addr.city || item.name || q,
+              district: addr.state_district || addr.county || "",
+              state: addr.state || "India",
+              lat: lat,
+              lon: lon,
+              tag: item.type || "Map Location"
+            });
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  return results;
 }
 
 /**
@@ -47,9 +234,28 @@ export async function reverseGeocode(lat, lon) {
     return reverseGeocodeCache.get(cacheKey);
   }
 
+  // First check if near any known agricultural hubs
+  for (const hub of INDIAN_AGRICULTURAL_PLACES) {
+    const dLat = Math.abs(hub.lat - lat);
+    const dLon = Math.abs(hub.lon - lon);
+    if (dLat < 0.05 && dLon < 0.05) {
+      const hubResult = {
+        displayName: `${hub.name}, ${hub.district}, ${hub.state}`,
+        town: hub.town,
+        district: hub.district,
+        state: hub.state,
+        postcode: '',
+        country: 'India',
+        tag: hub.tag
+      };
+      reverseGeocodeCache.set(cacheKey, hubResult);
+      return hubResult;
+    }
+  }
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
     
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1`,
@@ -76,14 +282,14 @@ export async function reverseGeocode(lat, lon) {
       return result;
     }
   } catch (err) {
-    console.warn("Reverse geocode network error, falling back to zone mapping:", err);
+    console.warn("Reverse geocode network error, using zone fallback:", err);
   }
 
   // Fallback using agro-climatic zone
   const zone = getAgroClimaticZone(lat, lon);
   const fallback = {
-    displayName: `${zone.name}, India`,
-    town: 'Agro Field Location',
+    displayName: `${zone.name} Farm Region, India`,
+    town: 'Agro Field Parcel',
     district: zone.states[0] || 'Local Region',
     state: zone.states[0] || 'India',
     postcode: '',
@@ -125,7 +331,6 @@ export function startLiveLocationWatch(onLocationUpdate, onError) {
         timestamp: position.timestamp
       };
 
-      // Save cookie if enabled
       setCookie(COOKIE_KEYS.LAST_COORDS, {
         lat: coords.latitude,
         lon: coords.longitude,
@@ -194,3 +399,4 @@ export function getCurrentPositionPromise() {
     );
   });
 }
+

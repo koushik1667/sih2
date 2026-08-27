@@ -10,7 +10,8 @@ import {
   RotateCcw,
   Layers,
   ArrowRight,
-  X
+  X,
+  Compass
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -114,7 +115,15 @@ export const FarmManagement = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start">
+        <div className="flex flex-wrap items-center gap-2.5 self-start">
+          <button
+            onClick={() => setActiveTab('land_scanner')}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#FEFEFA] hover:bg-[#F0EBE5] border-2 border-[#5D7052] text-[#5D7052] font-bold text-xs shadow-soft transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Compass className="w-4 h-4 text-[#5D7052]" />
+            <span>Interactive Map &amp; Scanner</span>
+          </button>
+
           <button
             onClick={() => {
               setShowAddForm(!showAddForm);
@@ -460,7 +469,7 @@ export const FarmManagement = () => {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-xl font-bold text-[#2C2C24] font-serif">{farm.name}</h3>
                     {isSelected && (
                       <span className="px-3 py-0.5 rounded-full text-[10px] font-bold bg-[#5D7052]/15 text-[#5D7052] border border-[#5D7052]/30 flex items-center gap-1">
@@ -468,10 +477,22 @@ export const FarmManagement = () => {
                         <span>Active Field</span>
                       </span>
                     )}
+                    {(farm.coordinates?.boundaryPolygon?.length > 0 || farm.boundary_polygon?.length > 0) && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#5D7052]/10 text-[#5D7052] border border-[#5D7052]/25 flex items-center gap-1">
+                        <Compass className="w-2.5 h-2.5" />
+                        <span>GPS Boundary</span>
+                      </span>
+                    )}
+                    {farm.scanData && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C18C5D]/10 text-[#C18C5D] border border-[#C18C5D]/25 flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        <span>Multi-Spectral</span>
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-[#78786C] flex items-center gap-1.5 mt-1 font-medium">
+                  <p className="text-xs text-[#78786C] flex items-center gap-1.5 mt-1.5 font-medium">
                     <MapPin className="w-3.5 h-3.5 text-[#C18C5D]" />
-                    <span>{farm.location} • Farmer: {farm.farmer_name}</span>
+                    <span>{farm.location} • Farmer: {farm.farmer_name || 'Farmer'}</span>
                   </p>
                 </div>
 
@@ -515,17 +536,33 @@ export const FarmManagement = () => {
 
               <div className="flex items-center justify-between pt-3 border-t border-[#DED8CF]/60 text-xs text-[#78786C] font-medium">
                 <span>Soil: {farm.soil_type || 'Alluvial'}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFarm(farm);
-                    setActiveTab('soil_precision');
-                  }}
-                  className="text-[#5D7052] font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Simulate NPK</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                
+                <div className="flex items-center gap-3">
+                  {(farm.coordinates?.boundaryPolygon?.length > 0 || farm.boundary_polygon?.length > 0) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFarm(farm);
+                        setActiveTab('land_scanner');
+                      }}
+                      className="text-[#5D7052] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Compass className="w-3.5 h-3.5" />
+                      <span>View on Map</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFarm(farm);
+                      setActiveTab('soil_precision');
+                    }}
+                    className="text-[#2C2C24] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Simulate NPK</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           );

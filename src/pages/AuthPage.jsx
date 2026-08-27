@@ -511,10 +511,10 @@ export const AuthPage = ({ onSuccess }) => {
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5D7052]/10 text-[#5D7052] text-[10px] font-bold uppercase tracking-wider">
               <span>Authentication Dashboard</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-[#2C2C24] font-serif leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#2C2C24] font-serif leading-tight">
               Farmer Access &amp; Cloud Database
             </h1>
-            <p className="text-sm text-[#78786C] font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#78786C] font-medium leading-relaxed">
               Sign in with your email or Google account to access your private farm plots, live Doppler radar, and ICAR agronomist precision tools.
             </p>
           </div>

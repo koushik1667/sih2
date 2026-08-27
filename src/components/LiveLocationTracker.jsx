@@ -64,6 +64,11 @@ export const LiveLocationTracker = () => {
     setActiveTab('satellite_srm');
   };
 
+  const handleOpenLandScanner = () => {
+    setIsTrackerOpen(false);
+    setActiveTab('land_scanner');
+  };
+
   const handleRegisterFarm = () => {
     setIsTrackerOpen(false);
     setActiveTab('farms');
@@ -226,7 +231,21 @@ export const LiveLocationTracker = () => {
             <h4 className="text-xs font-bold text-[#78786C] uppercase tracking-wider mb-3">
               1-Click Field Integrations
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <button
+                onClick={handleOpenLandScanner}
+                className="p-3.5 rounded-2xl bg-[#5D7052]/15 hover:bg-[#5D7052]/25 border border-[#5D7052]/40 text-left transition hover:scale-102 flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Compass className="w-4 h-4 text-[#5D7052]" />
+                  <ExternalLink className="w-3.5 h-3.5 text-[#5D7052]" />
+                </div>
+                <div>
+                  <h5 className="text-xs font-bold text-[#2C2C24]">Measure &amp; Scan Map</h5>
+                  <p className="text-[10px] text-[#5D7052] font-semibold mt-0.5">Interactive polygon &amp; live NDVI scan</p>
+                </div>
+              </button>
+
               <button
                 onClick={handleSyncWeather}
                 className="p-3.5 rounded-2xl bg-[#F0EBE5]/60 hover:bg-[#F0EBE5] border border-[#DED8CF] text-left transition hover:scale-102 flex flex-col justify-between"

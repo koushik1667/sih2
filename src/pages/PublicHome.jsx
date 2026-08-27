@@ -52,13 +52,13 @@ export const PublicHome = ({ onNavigateToAuth, onQuickDemoLogin }) => {
         </div>
 
         {/* Display Typography Title */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[#2C2C24] font-serif leading-[1.15] tracking-tight">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#2C2C24] font-serif leading-[1.15] tracking-tight">
           Precision Agronomy Powered by <br className="hidden sm:inline" />
           <span className="text-[#5D7052] italic font-normal">Super-Resolution Satellites</span> &amp; AI
         </h1>
 
         {/* Subtitle */}
-        <p className="text-base sm:text-lg text-[#78786C] max-w-2xl mx-auto font-medium leading-relaxed">
+        <p className="text-sm sm:text-base text-[#78786C] max-w-2xl mx-auto font-medium leading-relaxed">
           Unifying ISRO/Sentinel sub-meter satellite super-resolution, ICAR soil health diagnostics, and Krishi Mitra AI to empower Indian farmers with data-driven yield precision.
         </p>
 
@@ -117,41 +117,37 @@ export const PublicHome = ({ onNavigateToAuth, onQuickDemoLogin }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           
           {/* Card 1: GeoSR-AI Satellite SRM */}
-          <div className="p-7 sm:p-8 rounded-[2.5rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#5D7052]/10 text-[#5D7052] flex items-center justify-center">
-                <Satellite className="w-6 h-6" />
+          <div className="p-6 sm:p-7 rounded-[2.25rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#5D7052]/10 text-[#5D7052] flex items-center justify-center">
+                <Satellite className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold font-serif text-[#2C2C24]">
+              <h3 className="text-lg font-bold font-serif text-[#2C2C24]">
                 GeoSR-AI Satellite SRM
               </h3>
               <p className="text-xs text-[#78786C] leading-relaxed">
-                Reconstructs 10-meter Sentinel &amp; Landsat imagery into 2.5-meter super-resolution tiles. Computes NDVI, NDRE, and EVI vegetation health indices with sub-plot precision.
+                Reconstructs 10-meter Sentinel imagery into 2.5-meter super-resolution tiles with NDVI &amp; NDRE sub-plot precision.
               </p>
-              <div className="space-y-2 pt-2 text-xs">
+              <div className="space-y-1.5 pt-1 text-xs">
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>Sub-meter multispectral reconstruction</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>Sub-meter reconstruction</span>
                 </div>
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>NDVI stress &amp; crop vigor detection</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>Interactive resolution comparison slider</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>NDVI crop vigor detection</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#DED8CF]/60">
+            <div className="pt-3 border-t border-[#DED8CF]/60">
               <button
                 type="button"
                 onClick={onNavigateToAuth}
-                className="w-full py-2.5 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Launch Satellite SRM</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -159,39 +155,74 @@ export const PublicHome = ({ onNavigateToAuth, onQuickDemoLogin }) => {
             </div>
           </div>
 
-          {/* Card 2: ICAR Soil Precision Card */}
-          <div className="p-7 sm:p-8 rounded-[2.5rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#C18C5D]/10 text-[#C18C5D] flex items-center justify-center">
-                <Sprout className="w-6 h-6" />
+          {/* Card 2: Live Map Land Measure & Scanner */}
+          <div className="p-6 sm:p-7 rounded-[2.25rem] bg-[#FEFEFA] border-2 border-[#5D7052]/40 shadow-soft space-y-4 flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[#5D7052] text-[#FEFEFA] text-[9px] font-bold uppercase tracking-wider">
+              Live GIS
+            </div>
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#5D7052]/15 text-[#5D7052] flex items-center justify-center">
+                <Compass className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold font-serif text-[#2C2C24]">
-                ICAR Soil Precision Engine
+              <h3 className="text-lg font-bold font-serif text-[#2C2C24]">
+                Land Measure &amp; Scan
               </h3>
               <p className="text-xs text-[#78786C] leading-relaxed">
-                Official Ministry Soil Health Card formula integration. Evaluates Nitrogen (N), Phosphorus (P), Potassium (K), pH, and Organic Carbon to generate tailored fertilizer dosages.
+                Draw polygon boundaries on live satellite maps to measure land in Acres, Gunthas &amp; Bighas, with live multi-spectral scanning.
               </p>
-              <div className="space-y-2 pt-2 text-xs">
+              <div className="space-y-1.5 pt-1 text-xs">
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#C18C5D] shrink-0" />
-                  <span>Government Soil Health Card (SHC) scoring</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>Acres, Gunthas &amp; Bighas</span>
                 </div>
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#C18C5D] shrink-0" />
-                  <span>Urea, DAP, MOP &amp; Bio-fertilizer dosage</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#C18C5D] shrink-0" />
-                  <span>Dynamic yield impact projections</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>Real-time Sentinel NDVI scan</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#DED8CF]/60">
+            <div className="pt-3 border-t border-[#DED8CF]/60">
               <button
                 type="button"
                 onClick={onNavigateToAuth}
-                className="w-full py-2.5 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-[#FEFEFA] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <span>Open Land Scanner</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: ICAR Soil Precision Card */}
+          <div className="p-6 sm:p-7 rounded-[2.25rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#C18C5D]/10 text-[#C18C5D] flex items-center justify-center">
+                <Sprout className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold font-serif text-[#2C2C24]">
+                ICAR Soil Precision
+              </h3>
+              <p className="text-xs text-[#78786C] leading-relaxed">
+                Official Ministry Soil Health Card formula integration. Evaluates Nitrogen, Phosphorus, Potassium, pH, and Organic Carbon.
+              </p>
+              <div className="space-y-1.5 pt-1 text-xs">
+                <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#C18C5D] shrink-0" />
+                  <span>Soil Health Card (SHC) scoring</span>
+                </div>
+                <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#C18C5D] shrink-0" />
+                  <span>Urea, DAP &amp; MOP dosage</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#DED8CF]/60">
+              <button
+                type="button"
+                onClick={onNavigateToAuth}
+                className="w-full py-2 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Diagnose Soil Card</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -199,39 +230,35 @@ export const PublicHome = ({ onNavigateToAuth, onQuickDemoLogin }) => {
             </div>
           </div>
 
-          {/* Card 3: Krishi Mitra AI Agronomist */}
-          <div className="p-7 sm:p-8 rounded-[2.5rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#5D7052]/10 text-[#5D7052] flex items-center justify-center">
-                <Bot className="w-6 h-6" />
+          {/* Card 4: Krishi Mitra AI Agronomist */}
+          <div className="p-6 sm:p-7 rounded-[2.25rem] bg-[#FEFEFA] border border-[#DED8CF] shadow-soft space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#5D7052]/10 text-[#5D7052] flex items-center justify-center">
+                <Bot className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold font-serif text-[#2C2C24]">
-                Krishi Mitra AI Agronomist
+              <h3 className="text-lg font-bold font-serif text-[#2C2C24]">
+                Krishi Mitra AI
               </h3>
               <p className="text-xs text-[#78786C] leading-relaxed">
-                24/7 AI-powered agricultural advisor grounded in ICAR research repositories. Multi-lingual voice input with support for Hindi, Punjabi, Marathi, Telugu, Tamil, and Bengali.
+                24/7 AI agricultural advisor grounded in ICAR research with 13 Indian languages and voice input support.
               </p>
-              <div className="space-y-2 pt-2 text-xs">
+              <div className="space-y-1.5 pt-1 text-xs">
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>Pest &amp; disease remedy recommendations</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>Pest &amp; disease remedies</span>
                 </div>
                 <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>PM-Kisan &amp; State agricultural subsidy advice</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#2C2C24] font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#5D7052] shrink-0" />
-                  <span>Real-time voice query transcription</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5D7052] shrink-0" />
+                  <span>Voice query in 13 languages</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#DED8CF]/60">
+            <div className="pt-3 border-t border-[#DED8CF]/60">
               <button
                 type="button"
                 onClick={onNavigateToAuth}
-                className="w-full py-2.5 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 rounded-full bg-[#F0EBE5] hover:bg-[#E6DCCD] text-[#2C2C24] font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Consult Krishi Mitra</span>
                 <ChevronRight className="w-3.5 h-3.5" />

@@ -41,24 +41,67 @@ export function calcSoilScoreLocal(nitrogen, phosphorus, potassium, ph, organic_
 
 const AppContext = createContext();
 
+const TAB_STORAGE_KEY = 'agrisphere_active_tab';
+
 export const AppProvider = ({ children }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('command_center');
+  const [activeTab, setActiveTabState] = useState(() => {
+    try {
+      const saved = localStorage.getItem(TAB_STORAGE_KEY);
+      return saved || 'command_center';
+    } catch (e) {
+      return 'command_center';
+    }
+  });
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, tab);
+    } catch (e) {}
+  };
   
-  // Real user farms state - starts completely empty without mock data
-  const [farms, setFarms] = useState([]);
-  const [selectedFarm, setSelectedFarm] = useState(null);
+  // Real user farms state - initialized from localStorage cache with real-time Firestore sync
+  const [farms, setFarms] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_user_farms');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [selectedFarm, setSelectedFarm] = useState(() => {
+    try {
+      const saved = localStorage.getItem('agrisphere_user_farms');
+      if (saved) {
+        const list = JSON.parse(saved);
+        return list.length > 0 ? list[0] : null;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   const [loading, setLoading] = useState(false);
   const [backendHealth, setBackendHealth] = useState({ status: 'healthy', version: '2.0.0' });
   const [toast, setToast] = useState(null);
   const [chatMessages, setChatMessages] = useState([DEFAULT_WELCOME_MESSAGE]);
 
-  // Sync real-time Firestore database for authenticated user
+  // Sync real-time Firestore database for authenticated user & keep local cache synchronized
   useEffect(() => {
     if (!user) {
-      setFarms([]);
-      setSelectedFarm(null);
+      // Offline / guest mode: load any local cached farms
+      try {
+        const saved = localStorage.getItem('agrisphere_user_farms');
+        if (saved) {
+          const list = JSON.parse(saved);
+          if (list && list.length > 0) {
+            setFarms(list);
+            setSelectedFarm(prev => prev || list[0]);
+          }
+        }
+      } catch (e) {}
       return;
     }
 
@@ -68,17 +111,34 @@ export const AppProvider = ({ children }) => {
       if (!snapshot.empty) {
         const firestoreFarms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setFarms(firestoreFarms);
+        try {
+          localStorage.setItem('agrisphere_user_farms', JSON.stringify(firestoreFarms));
+        } catch (e) {}
         setSelectedFarm(prev => {
           if (!prev) return firestoreFarms[0];
           const match = firestoreFarms.find(f => f.id === prev.id);
           return match || firestoreFarms[0];
         });
       } else {
-        setFarms([]);
-        setSelectedFarm(null);
+        // If Firestore is empty, check if we have local farms to sync to Firestore
+        try {
+          const local = localStorage.getItem('agrisphere_user_farms');
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setFarms(parsed);
+              setSelectedFarm(parsed[0]);
+              // Upload local farms to user's Firestore collection
+              parsed.forEach(farm => {
+                const farmDocRef = doc(db, 'users', user.uid, 'farms', farm.id);
+                setDoc(farmDocRef, { ...farm, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+              });
+            }
+          }
+        } catch (e) {}
       }
     }, (error) => {
-      console.warn("Firestore farms listener fallback:", error);
+      console.warn("Firestore farms listener fallback notice:", error?.message || error);
     });
 
     return () => unsubscribe();
@@ -104,7 +164,7 @@ export const AppProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Add Farm Action with Firestore user isolation
+  // Add Farm Action with instant local persistence & Firestore sync
   const addFarm = async (farmInput) => {
     const scoreData = calcSoilScoreLocal(
       farmInput.nitrogen || 165,
@@ -114,19 +174,39 @@ export const AppProvider = ({ children }) => {
       farmInput.organic_carbon || 0.82
     );
 
-    const farmId = `farm-${Date.now()}`;
+    const landSizeAcres = parseFloat(farmInput.land_size_acres) || 
+      (typeof farmInput.size === 'string' ? parseFloat(farmInput.size) : parseFloat(farmInput.size)) || 
+      parseFloat(farmInput.acres) || 
+      5.0;
+
+    const crop = farmInput.current_crop || farmInput.crop || "Wheat";
+    const soilType = farmInput.soil_type || farmInput.soilType || "Alluvial Loam";
+    const location = farmInput.location || "Punjab, India";
+    const boundary = farmInput.coordinates?.boundaryPolygon || farmInput.boundary_polygon || farmInput.boundaryPolygon || [];
+    const lat = farmInput.coordinates?.latitude || farmInput.coordinates?.lat || (boundary.length > 0 ? boundary[0][0] : 30.9010);
+    const lng = farmInput.coordinates?.longitude || farmInput.coordinates?.lng || (boundary.length > 0 ? boundary[0][1] : 75.8573);
+
+    const farmId = farmInput.id || `farm-${Date.now()}`;
     const newFarm = {
       id: farmId,
       name: farmInput.name || "New Agricultural Field",
       farmer_name: farmInput.farmer_name || (user?.displayName || "Farmer"),
-      location: farmInput.location || "Punjab, India",
-      coordinates: farmInput.coordinates || { lat: 30.9010, lng: 75.8573 },
-      land_size_acres: parseFloat(farmInput.land_size_acres) || 5.0,
-      soil_type: farmInput.soil_type || "Alluvial Loam",
+      location,
+      coordinates: {
+        lat,
+        lng,
+        latitude: lat,
+        longitude: lng,
+        boundaryPolygon: boundary
+      },
+      boundary_polygon: boundary,
+      land_size_acres: landSizeAcres,
+      size: `${landSizeAcres} Acres`,
+      soil_type: soilType,
       irrigation_type: farmInput.irrigation_type || "Tube Well / Borewell",
-      current_crop: farmInput.current_crop || "Wheat",
+      current_crop: crop,
       active_season: farmInput.active_season || "Rabi 2026",
-      soil_health: {
+      soil_health: farmInput.soil_health || {
         score: scoreData.score,
         risk_level: scoreData.risk_level,
         nitrogen: parseFloat(farmInput.nitrogen) || 165,
@@ -136,23 +216,32 @@ export const AppProvider = ({ children }) => {
         organic_carbon: parseFloat(farmInput.organic_carbon) || 0.82,
         moisture: parseFloat(farmInput.moisture) || 38.0
       },
-      last_tested: new Date().toISOString().split('T')[0]
+      scanData: farmInput.scanData || null,
+      last_tested: farmInput.last_tested || new Date().toISOString().split('T')[0]
     };
 
-    if (user) {
+    // Optimistically update state & local cache immediately
+    setFarms(prev => {
+      const updated = [newFarm, ...prev.filter(f => f.id !== farmId)];
       try {
-        const farmDocRef = doc(db, 'users', user.uid, 'farms', farmId);
-        await setDoc(farmDocRef, { ...newFarm, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-      } catch (err) {
-        console.error("Failed to write farm to user Firestore:", err);
-      }
-    } else {
-      setFarms(prev => [newFarm, ...prev]);
-    }
+        localStorage.setItem('agrisphere_user_farms', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
 
     setSelectedFarm(newFarm);
 
-    // Also sync to server API
+    // Sync to user's Firestore collection if authenticated
+    if (user) {
+      try {
+        const farmDocRef = doc(db, 'users', user.uid, 'farms', farmId);
+        await setDoc(farmDocRef, { ...newFarm, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      } catch (err) {
+        console.warn("Notice: Firestore farm upload queued (locally saved):", err?.message || err);
+      }
+    }
+
+    // Background server API sync
     try {
       await api.createFarm(farmInput);
     } catch (e) {}
@@ -186,39 +275,48 @@ export const AppProvider = ({ children }) => {
       }
     };
 
+    setFarms(prev => {
+      const updatedList = prev.map(f => f.id === farmId ? updated : f);
+      try {
+        localStorage.setItem('agrisphere_user_farms', JSON.stringify(updatedList));
+      } catch (e) {}
+      return updatedList;
+    });
+
+    if (selectedFarm?.id === farmId) {
+      setSelectedFarm(updated);
+    }
+
     if (user) {
       try {
         const farmDocRef = doc(db, 'users', user.uid, 'farms', farmId);
         await setDoc(farmDocRef, { ...updated, updatedAt: serverTimestamp() }, { merge: true });
       } catch (err) {
-        console.error("Failed to update user farm in Firestore:", err);
+        console.warn("Notice: Firestore farm update queued:", err?.message || err);
       }
-    } else {
-      setFarms(prev => prev.map(f => f.id === farmId ? updated : f));
-    }
-
-    if (selectedFarm?.id === farmId) {
-      setSelectedFarm(updated);
     }
   };
 
   // Delete Farm Action
   const deleteFarm = async (farmId) => {
+    setFarms(prev => {
+      const updated = prev.filter(f => f.id !== farmId);
+      try {
+        localStorage.setItem('agrisphere_user_farms', JSON.stringify(updated));
+      } catch (e) {}
+      if (selectedFarm?.id === farmId) {
+        setSelectedFarm(updated.length > 0 ? updated[0] : null);
+      }
+      return updated;
+    });
+
     if (user) {
       try {
         const farmDocRef = doc(db, 'users', user.uid, 'farms', farmId);
         await deleteDoc(farmDocRef);
       } catch (err) {
-        console.error("Failed to delete user farm in Firestore:", err);
+        console.warn("Notice: Firestore farm deletion queued:", err?.message || err);
       }
-    } else {
-      setFarms(prev => {
-        const updated = prev.filter(f => f.id !== farmId);
-        if (selectedFarm?.id === farmId) {
-          setSelectedFarm(updated.length > 0 ? updated[0] : null);
-        }
-        return updated;
-      });
     }
 
     try {

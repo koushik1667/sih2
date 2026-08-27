@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Registered farmer profile and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Farmer email address" },
+        "displayName": { "type": "string", "description": "Farmer full name" },
+        "photoURL": { "type": "string", "description": "Profile picture URL" },
+        "role": { "type": "string", "description": "User role e.g. farmer or agronomist" },
+        "phone": { "type": "string", "description": "Contact number" },
+        "state": { "type": "string", "description": "Indian State" },
+        "preferredCrop": { "type": "string", "description": "Primary crop cultivated" },
+        "preferredLanguage": { "type": "string", "description": "Language code (e.g. hi, en, te, pa)" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "description": "Last update timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Farm": {
+      "title": "Farm Parcel",
+      "description": "Geolocated agricultural land parcel and live telemetry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique Farm Identifier" },
+        "name": { "type": "string", "description": "Farm or Plot Name" },
+        "farmer_name": { "type": "string", "description": "Owner Name" },
+        "location": { "type": "string", "description": "Town, District, State" },
+        "coordinates": { "type": "object", "description": "GPS Latitude and Longitude" },
+        "boundary_polygon": { "type": "array", "description": "Boundary vertices coordinates" },
+        "land_size_acres": { "type": "number", "description": "Land size in acres" },
+        "soil_type": { "type": "string", "description": "Soil classification" },
+        "irrigation_type": { "type": "string", "description": "Irrigation infrastructure" },
+        "current_crop": { "type": "string", "description": "Active crop" },
+        "active_season": { "type": "string", "description": "Season (Kharif, Rabi, Zaid)" },
+        "soil_health": { "type": "object", "description": "NPK, pH, Organic Carbon, Moisture, Score" },
+        "last_tested": { "type": "string", "description": "Date of latest testing" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "description": "Update timestamp" }
+      },
+      "required": ["id", "name"]
+    },
+    "SoilTest": {
+      "title": "Soil Test Record",
+      "description": "Laboratory soil chemistry assessment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Test Identifier" },
+        "sampleId": { "type": "string", "description": "SHC Sample Number" },
+        "testedDate": { "type": "string", "description": "Testing Date" },
+        "metrics": { "type": "object", "description": "Macro and micronutrient values" },
+        "recommendations": { "type": "array", "description": "Fertilizer dosage recommendations" },
+        "createdAt": { "type": "string", "description": "Record creation timestamp" }
+      }
+    },
+    "ChatMessage": {
+      "title": "Krishi Mitra Chat Message",
+      "description": "Agronomy advisory interaction message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Message ID" },
+        "sender": { "type": "string", "enum": ["user", "bot"] },
+        "text": { "type": "string", "description": "Advisory text" },
+        "topic": { "type": "string", "description": "Subject category" },
+        "timestamp": { "type": "string", "description": "Message timestamp" }
+      },
+      "required": ["sender", "text"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profile document"
+    },
+    "/users/{userId}/farms/{farmId}": {
+      "schema": { "$ref": "#/entities/Farm" },
+      "description": "User agricultural land parcels"
+    },
+    "/users/{userId}/soil_tests/{testId}": {
+      "schema": { "$ref": "#/entities/SoilTest" },
+      "description": "User soil testing records"
+    },
+    "/users/{userId}/chat_history/{chatId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "User Krishi Mitra chat history"
+    }
+  }
+}

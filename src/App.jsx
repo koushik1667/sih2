@@ -14,6 +14,7 @@ import { AIAgronomist } from './pages/AIAgronomist';
 import { FarmManagement } from './pages/FarmManagement';
 import { WeatherRadar } from './pages/WeatherRadar';
 import { AuthPage } from './pages/AuthPage';
+import { LiveLandScannerMap } from './pages/LiveLandScannerMap';
 import { LiveTranslationHUD } from './components/LiveTranslationHUD';
 import { LiveLocationTracker } from './components/LiveLocationTracker';
 import { CookieConsent } from './components/CookieConsent';
@@ -60,7 +61,7 @@ const MainContent = () => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-20 sm:pb-8">
           {isLoginDashboard ? (
             <AuthPage onSuccess={() => setActiveTab('command_center')} />
           ) : (
@@ -126,6 +127,8 @@ const MainContent = () => {
         return <PublicHome onNavigateToAuth={() => setActiveTab('login')} />;
       case 'command_center':
         return <CommandCenter />;
+      case 'land_scanner':
+        return <LiveLandScannerMap />;
       case 'satellite_srm':
         return <SatelliteSRM />;
       case 'soil_precision':
@@ -177,7 +180,7 @@ const MainContent = () => {
       )}
 
       {/* Main Page Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 pb-20 sm:pb-8">
         {renderPage()}
       </main>
 

@@ -8,7 +8,8 @@ import {
   MapPin, 
   TrendingUp, 
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Compass
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -31,20 +32,28 @@ export const CommandCenter = () => {
             <Sparkles className="w-3.5 h-3.5" />
             <span>AI Remote Sensing & Natural Agronomy Intelligence</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#2C2C24] font-serif leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#2C2C24] font-serif leading-tight">
             {t('cmd_welcome')}
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-[#78786C] leading-relaxed font-sans">
+          <p className="mt-3 text-xs sm:text-sm text-[#78786C] leading-relaxed font-sans">
             {t('cmd_sub')}
           </p>
 
           {/* Quick Action Pills */}
           <div className="mt-8 flex flex-wrap gap-3.5">
             <button
-              onClick={() => setActiveTab('satellite_srm')}
+              onClick={() => setActiveTab('land_scanner')}
               className="flex items-center gap-2.5 px-6 py-3 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-[#F3F4F1] font-bold text-xs shadow-soft transition-all hover:scale-105 active:scale-95"
             >
-              <Satellite className="w-4 h-4" />
+              <Compass className="w-4 h-4" />
+              <span>Measure &amp; Scan Land</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('satellite_srm')}
+              className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#FEFEFA] hover:bg-[#F0EBE5] border-2 border-[#5D7052] text-[#5D7052] font-bold text-xs shadow-soft transition-all hover:scale-105 active:scale-95"
+            >
+              <Satellite className="w-4 h-4 text-[#5D7052]" />
               <span>{t('cmd_launch_srm')}</span>
             </button>
 

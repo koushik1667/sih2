@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getAuth, 
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
   GoogleAuthProvider, 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -12,6 +16,8 @@ import {
 } from "firebase/auth";
 import { 
   getFirestore, 
+  initializeFirestore,
+  persistentLocalCache,
   doc, 
   setDoc, 
   getDoc, 
@@ -40,17 +46,44 @@ const firebaseConfig = {
 // Initialize Firebase App singleton
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Auth Instance
+// Auth Instance with explicit local persistence
 export const auth = getAuth(app);
+
+// Guarantee browser local persistence across reloads & sessions
+try {
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.warn("Firebase local persistence fallback:", err);
+  });
+} catch (e) {
+  // silent fallback if already configured
+}
+
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// Firestore Instance (specifying databaseId if present)
-export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)"
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+// Firestore Instance with persistent cache & graceful fallback
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(app, {
+    localCache: persistentLocalCache({})
+  });
+} catch (e) {
+  try {
+    firestoreDb = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)"
+      ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+      : getFirestore(app);
+  } catch (err) {
+    firestoreDb = getFirestore(app);
+  }
+}
+
+export const db = firestoreDb;
 
 export {
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -70,3 +103,4 @@ export {
   orderBy,
   serverTimestamp
 };
+
