@@ -901,10 +901,53 @@ app.get("/api/translate/languages", (req, res) => {
   });
 });
 
-app.post("/api/translate", (req, res) => {
+const SERVER_TRANSLATION_CACHE = new Map<string, string>();
+
+async function translateSingleText(text: string, fromLang: string, toLang: string): Promise<string> {
+  if (!text || typeof text !== "string" || !text.trim() || toLang === "en" || fromLang === toLang) {
+    return text;
+  }
+  const trimmed = text.trim();
+  if (/^[0-9\s.,:%!@#$^&*()_+\-=[\]{};':"\\|,.<>/?°℃℉\/\\|•]+$/.test(trimmed)) {
+    return text;
+  }
+
+  const cacheKey = `${toLang}:${trimmed}`;
+  if (SERVER_TRANSLATION_CACHE.has(cacheKey)) {
+    return SERVER_TRANSLATION_CACHE.get(cacheKey)!;
+  }
+
+  // 1. Check built-in dictionary
+  const dict = TRANSLATIONS_DICT[toLang];
+  if (dict && dict[trimmed]) {
+    SERVER_TRANSLATION_CACHE.set(cacheKey, dict[trimmed]);
+    return dict[trimmed];
+  }
+
+  // 2. Query MyMemory Neural Machine Translation
+  try {
+    const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${fromLang}|${toLang}`;
+    const mmRes = await fetch(mmUrl, {
+      headers: { "User-Agent": "AgriSphere-Translation/2.0" }
+    });
+    if (mmRes.ok) {
+      const json = (await mmRes.json()) as any;
+      const translated = json.responseData?.translatedText;
+      if (translated && !translated.startsWith("MYMEMORY WARNING:") && translated !== trimmed) {
+        SERVER_TRANSLATION_CACHE.set(cacheKey, translated);
+        return translated;
+      }
+    }
+  } catch (err: any) {
+    console.error("[MyMemory Translate Error]", err.message);
+  }
+
+  return trimmed;
+}
+
+app.post("/api/translate", async (req, res) => {
   const { text, from_lang = "en", to_lang = "hi" } = req.body;
-  const langDict = TRANSLATIONS_DICT[to_lang];
-  const translated = langDict && langDict[text] ? langDict[text] : text;
+  const translated = await translateSingleText(text, from_lang, to_lang);
   res.json({
     original_text: text,
     from_lang,
@@ -913,10 +956,16 @@ app.post("/api/translate", (req, res) => {
   });
 });
 
-app.post("/api/translate/batch", (req, res) => {
+app.post("/api/translate/batch", async (req, res) => {
   const { texts = [], from_lang = "en", to_lang = "hi" } = req.body;
-  const langDict = TRANSLATIONS_DICT[to_lang] || {};
-  const results = texts.map((t: string) => langDict[t] || t);
+  if (!Array.isArray(texts) || texts.length === 0 || to_lang === "en") {
+    return res.json({ from_lang, to_lang, translated_texts: texts });
+  }
+
+  const results = await Promise.all(
+    texts.map((t: string) => translateSingleText(t, from_lang, to_lang))
+  );
+
   res.json({
     from_lang,
     to_lang,
