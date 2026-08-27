@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Bot, MapPin, BarChart3, Users, Sparkles } from 'lucide-react';
+import { Bot, MapPin, BarChart3, Users, Sparkles, History } from 'lucide-react';
 import { AIAgronomist } from './AIAgronomist';
 import { FarmManagement } from './FarmManagement';
 import { NationalAnalytics } from './NationalAnalytics';
+import { AnalysisHistory } from './AnalysisHistory';
 import { useApp } from '../context/AppContext';
 
 export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
@@ -10,6 +11,7 @@ export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
   const [subTab, setSubTab] = useState(() => {
     if (activeTab === 'farms') return 'farms';
     if (activeTab === 'national_analytics') return 'analytics';
+    if (activeTab === 'history') return 'history';
     return defaultSubTab || 'ai';
   });
 
@@ -20,6 +22,8 @@ export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
       setSubTab('analytics');
     } else if (activeTab === 'ai_agronomist') {
       setSubTab('ai');
+    } else if (activeTab === 'history') {
+      setSubTab('history');
     }
   }, [activeTab]);
 
@@ -33,15 +37,15 @@ export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-[#2C2C24] font-serif leading-tight">
-              Farm Hub, AI Agronomist &amp; National Analytics
+              Farm Hub, AI Agronomist, Analytics &amp; History
             </h2>
             <p className="text-[11px] text-[#78786C]">
-              Krishi Mitra Multilingual RAG Advisor, Cloud Farm Parcels &amp; Bharat Crop Intelligence
+              Krishi Mitra RAG Advisor, Cloud Farm Parcels, Bharat Crop BI &amp; Audit Vault
             </p>
           </div>
         </div>
 
-        {/* 3-Pill Segmented Switcher */}
+        {/* 4-Pill Segmented Switcher */}
         <div className="flex items-center p-1 bg-[#F0EBE5]/80 rounded-2xl border border-[#DED8CF] self-start sm:self-auto shrink-0 overflow-x-auto max-w-full">
           <button
             type="button"
@@ -87,6 +91,22 @@ export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
               Power BI
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('history')}
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              subTab === 'history'
+                ? 'bg-[#5D7052] text-[#FEFEFA] shadow-soft scale-102'
+                : 'text-[#78786C] hover:text-[#2C2C24]'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>Analysis History</span>
+            <span className="px-1.5 py-0.2 text-[9px] rounded-full bg-[#A85448]/20 text-[#A85448] font-extrabold hidden sm:inline">
+              Audit Vault
+            </span>
+          </button>
         </div>
       </div>
 
@@ -94,6 +114,7 @@ export const FarmHubAndAI = ({ defaultSubTab = 'ai' }) => {
       {subTab === 'ai' && <AIAgronomist />}
       {subTab === 'farms' && <FarmManagement />}
       {subTab === 'analytics' && <NationalAnalytics />}
+      {subTab === 'history' && <AnalysisHistory />}
     </div>
   );
 };

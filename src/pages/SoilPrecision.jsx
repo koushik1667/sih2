@@ -23,6 +23,7 @@ import {
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useApp, calcSoilScoreLocal } from '../context/AppContext';
+import { historyService } from '../services/historyService';
 
 const CROP_ECONOMICS = {
   Wheat: { baseRevenue: 44000, costOfCultivation: 16000, targetYield: "24 Q/Ac" },
@@ -220,8 +221,32 @@ export const SoilPrecision = () => {
       console.warn("Using local agronomic computation:", err);
     } finally {
       setLoading(false);
+
+      // Log to universal history
+      historyService.addEntry({
+        type: "soil_precision",
+        title: `Soil NPK Health & 3-Season ROI • ${crop}`,
+        location: selectedFarm?.location || "Field Plot Basin",
+        coordinates: selectedFarm?.coordinates ? { lat: selectedFarm.coordinates.lat || selectedFarm.coordinates.latitude, lon: selectedFarm.coordinates.lng || selectedFarm.coordinates.longitude } : { lat: 30.9010, lon: 75.8573 },
+        summary: `Soil Score: ${local.score}/100 (${local.risk_level} Risk). Net profit ₹${netProfit.toLocaleString('en-IN')}/acre with +₹${rotationProfitBoost.toLocaleString('en-IN')} rotation gain.`,
+        metrics: [
+          { label: "Soil Score", value: `${local.score} / 100` },
+          { label: "Standing Crop", value: crop },
+          { label: "Net Profit / Ac", value: `₹${netProfit.toLocaleString('en-IN')}` },
+          { label: "Rotation Gain", value: `+₹${rotationProfitBoost.toLocaleString('en-IN')}` }
+        ],
+        tags: ["Soil Health", "NPK Drawdown", "Legume Rotation"],
+        details: {
+          nitrogen: `${nitrogen} kg/ha`,
+          phosphorus: `${phosphorus} kg/ha`,
+          potassium: `${potassium} kg/ha`,
+          ph: ph,
+          organic_carbon: `${organicCarbon}%`,
+          moisture: `${moisture}%`
+        }
+      });
     }
-  }, [nitrogen, phosphorus, potassium, ph, organicCarbon, moisture, crop]);
+  }, [nitrogen, phosphorus, potassium, ph, organicCarbon, moisture, crop, selectedFarm]);
 
   // Sync with selected farm if available
   useEffect(() => {
