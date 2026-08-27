@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   MapPin,
   Maximize2,
@@ -33,7 +34,8 @@ import {
   Navigation,
   Globe,
   Tag,
-  X
+  X,
+  Satellite
 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 import { useApp } from '../context/AppContext';
@@ -60,26 +62,24 @@ const createPinIcon = (number, color = '#5D7052') => {
     className: 'custom-land-pin',
     html: `
       <div style="
-        background-color: ${color};
+        background: ${color};
         color: #FEFEFA;
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
         font-size: 11px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         border: 2px solid #FEFEFA;
-        transform: translate(-50%, -50%);
-        transition: transform 0.2s ease;
       ">
         ${number}
       </div>
     `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14]
+    iconSize: [26, 26],
+    iconAnchor: [13, 13]
   });
 };
 
@@ -88,64 +88,69 @@ const createSearchPinIcon = () => {
     className: 'custom-search-pin',
     html: `
       <div style="
-        background-color: #C18C5D;
+        background: #C18C5D;
         color: #FEFEFA;
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 16px rgba(193, 140, 93, 0.6);
-        border: 3px solid #FEFEFA;
-        transform: translate(-50%, -50%);
+        box-shadow: 0 4px 14px rgba(193, 140, 93, 0.6);
+        border: 2.5px solid #FEFEFA;
         animation: bounce 1s infinite alternate;
       ">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
+        📍
       </div>
     `,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17]
+    iconSize: [32, 32],
+    iconAnchor: [16, 32]
   });
 };
 
-const PRESET_PLOTS = [
+// Preset demo polygons across India
+const PRESET_PARCELS = [
   {
-    name: "Ludhiana Model Wheat Plot",
-    state: "Punjab",
+    id: 'punjab_wheat',
+    name: 'Ludhiana Wheat Estate (Punjab)',
+    state: 'Punjab',
+    crop: 'Wheat',
     coords: [
-      [30.9015, 75.8550],
-      [30.9038, 75.8592],
-      [30.9008, 75.8615],
-      [30.8988, 75.8572]
+      [30.9010, 75.8573],
+      [30.9045, 75.8610],
+      [30.8990, 75.8645],
+      [30.8965, 75.8590]
     ]
   },
   {
-    name: "Nashik Precision Vineyard Parcel",
-    state: "Maharashtra",
+    id: 'maharashtra_cane',
+    name: 'Kolhapur Sugarcane Basin (MH)',
+    state: 'Maharashtra',
+    crop: 'Sugarcane',
     coords: [
-      [20.0050, 73.7820],
-      [20.0078, 73.7865],
-      [20.0042, 73.7890],
-      [20.0020, 73.7840]
+      [16.7050, 74.2433],
+      [16.7090, 74.2480],
+      [16.7035, 74.2510],
+      [16.7010, 74.2450]
     ]
   },
   {
-    name: "Warangal Cotton Farm Boundary",
-    state: "Telangana",
+    id: 'telangana_cotton',
+    name: 'Warangal Cotton Zone (TS)',
+    state: 'Telangana',
+    crop: 'Cotton',
     coords: [
       [17.9780, 79.5940],
-      [17.9815, 79.5995],
-      [17.9775, 79.6030],
-      [17.9740, 79.5975]
+      [17.9815, 79.5985],
+      [17.9760, 79.6015],
+      [17.9735, 79.5960]
     ]
   },
   {
-    name: "Guntur Chilli & Cotton Parcel",
-    state: "Andhra Pradesh",
+    id: 'andhra_chilli',
+    name: 'Guntur Chilli Farmlands (AP)',
+    state: 'Andhra Pradesh',
+    crop: 'Chilli',
     coords: [
       [16.3067, 80.4365],
       [16.3095, 80.4410],
@@ -157,7 +162,7 @@ const PRESET_PLOTS = [
 
 export const LiveLandScannerMap = () => {
   const { locationState, refreshOnce, isTracking, toggleTracking } = useLocation();
-  const { addFarm, showToast, setActiveTab, farms, selectedFarm, setSelectedFarm } = useApp();
+  const { addFarm, showToast, setActiveTab, farms, selectedFarm, setSelectedFarm, sendParcelToGeoSR } = useApp();
   const { user, userProfile } = useAuth();
   const { t } = useLanguage();
 
@@ -631,6 +636,34 @@ export const LiveLandScannerMap = () => {
     setTimeout(() => setCopiedCoords(false), 2000);
   };
 
+  // Automatically take measured area into GeoSR-AI Studio & Generate Report
+  const handleTakeToGeoSR = () => {
+    if (points.length < 3) {
+      showToast('Please add at least 3 boundary corner points on the map to define the land parcel.', 'warning');
+      return;
+    }
+    const parcelName = fieldAddress?.town 
+      ? `${fieldAddress.town} Parcel (${units.acres} Ac)` 
+      : (fieldAddress?.district ? `${fieldAddress.district} Parcel (${units.acres} Ac)` : `Measured Parcel (${units.acres} Ac)`);
+
+    const parcelData = {
+      name: parcelName,
+      acres: parseFloat(units.acres) || 2.5,
+      lat: centerCoords[0],
+      lon: centerCoords[1],
+      points: points,
+      address: fieldAddress,
+      crop: saveFormData?.current_crop || 'Standing Crop',
+      telemetry: scanTelemetry || generateLandScanTelemetry(centerCoords[0], centerCoords[1], units.acres || 2.5)
+    };
+
+    if (typeof sendParcelToGeoSR === 'function') {
+      sendParcelToGeoSR(parcelData);
+    } else {
+      setActiveTab('land_satellite');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn pb-12 font-sans">
       
@@ -917,6 +950,18 @@ export const LiveLandScannerMap = () => {
               </div>
 
               <div className="flex items-center gap-2">
+                {points.length >= 3 && (
+                  <button
+                    type="button"
+                    onClick={handleTakeToGeoSR}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-[#C18C5D] hover:bg-[#A87448] text-[#FEFEFA] shadow-soft transition hover:scale-102 cursor-pointer"
+                    title="Send this measured area directly into GeoSR-AI Studio for 4x Super-Resolution & Report"
+                  >
+                    <Satellite className="w-3.5 h-3.5" />
+                    <span>Run GeoSR-AI Report</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleStartScan}
@@ -1031,6 +1076,19 @@ export const LiveLandScannerMap = () => {
                 </div>
               </div>
             )}
+
+            {/* Primary Action: Send Measured Parcel Directly to GeoSR-AI */}
+            <button
+              type="button"
+              onClick={handleTakeToGeoSR}
+              disabled={points.length < 3}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-[#FEFEFA] text-xs font-bold shadow-soft transition-all disabled:opacity-40 cursor-pointer hover:scale-102"
+              title="Automatically take this measured land parcel into GeoSR-AI for 4x Super-Resolution & Agronomic Report"
+            >
+              <Satellite className="w-4 h-4 text-[#A8E6CF] animate-pulse" />
+              <span>Analyze in GeoSR-AI &amp; Generate Report</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
 
             {/* Save Farm Button */}
             <button

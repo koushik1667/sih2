@@ -88,6 +88,15 @@ export const AppProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const [chatMessages, setChatMessages] = useState([DEFAULT_WELCOME_MESSAGE]);
 
+  // Parcel selected from Land Measure scanner for automatic GeoSR-AI analysis & reporting
+  const [selectedParcelForSRM, setSelectedParcelForSRM] = useState(null);
+
+  const sendParcelToGeoSR = (parcelData) => {
+    setSelectedParcelForSRM(parcelData);
+    setActiveTab('land_satellite');
+    showToast(`Sending ${parcelData.name || 'measured land'} into GeoSR-AI Studio...`, 'success');
+  };
+
   // Sync real-time Firestore database for authenticated user & keep local cache synchronized
   useEffect(() => {
     if (!user) {
@@ -342,7 +351,10 @@ export const AppProvider = ({ children }) => {
         toast,
         showToast,
         chatMessages,
-        setChatMessages
+        setChatMessages,
+        selectedParcelForSRM,
+        setSelectedParcelForSRM,
+        sendParcelToGeoSR
       }}
     >
       {children}

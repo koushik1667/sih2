@@ -5,19 +5,21 @@ import { SatelliteSRM } from './SatelliteSRM';
 import { useApp } from '../context/AppContext';
 
 export const LandAndSatellite = ({ defaultSubTab = 'scanner' }) => {
-  const { activeTab } = useApp();
+  const { activeTab, selectedParcelForSRM } = useApp();
   const [subTab, setSubTab] = useState(() => {
-    if (activeTab === 'satellite_srm') return 'srm';
+    if (selectedParcelForSRM || activeTab === 'satellite_srm') return 'srm';
     return defaultSubTab || 'scanner';
   });
 
   useEffect(() => {
-    if (activeTab === 'satellite_srm') {
+    if (selectedParcelForSRM) {
+      setSubTab('srm');
+    } else if (activeTab === 'satellite_srm') {
       setSubTab('srm');
     } else if (activeTab === 'land_scanner') {
       setSubTab('scanner');
     }
-  }, [activeTab]);
+  }, [activeTab, selectedParcelForSRM]);
 
   return (
     <div className="space-y-4">

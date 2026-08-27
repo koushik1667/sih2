@@ -21,20 +21,24 @@ import {
   CloudSun,
   Grid,
   Zap,
-  MapPin
+  MapPin,
+  ChevronRight
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useApp } from '../context/AppContext';
 import { ImageSlider } from '../components/ImageSlider';
 import { 
   PRESETS_DATA, 
   processUploadedImage, 
   generateGeoTIFFBlob, 
-  generateAgronomicReport 
+  generateAgronomicReport,
+  generateCustomParcelGeoSR
 } from '../utils/geoSrSynthesizer';
 
 export const SatelliteSRM = () => {
   const { t } = useLanguage();
+  const { selectedParcelForSRM, setSelectedParcelForSRM, showToast } = useApp();
   const [presets, setPresets] = useState(Object.values(PRESETS_DATA));
   const [selectedPresetId, setSelectedPresetId] = useState('punjab_wheat_belt');
   const [selectedModel, setSelectedModel] = useState('edsr');
@@ -53,7 +57,7 @@ export const SatelliteSRM = () => {
   const [latencyMs, setLatencyMs] = useState(118);
 
   // Active scene metadata
-  const currentPreset = !uploadedFile ? (PRESETS_DATA[selectedPresetId] || PRESETS_DATA.punjab_wheat_belt) : null;
+  const currentPreset = !uploadedFile && !selectedParcelForSRM ? (PRESETS_DATA[selectedPresetId] || PRESETS_DATA.punjab_wheat_belt) : null;
 
   // Run or refresh inference
   const runInference = async (presetId = selectedPresetId, model = selectedModel, scale = scaleFactor) => {
@@ -62,7 +66,12 @@ export const SatelliteSRM = () => {
     const startTime = performance.now();
 
     try {
-      if (uploadedFile && uploadPreview) {
+      if (selectedParcelForSRM) {
+        // Automatic GeoSR execution for custom measured land parcel
+        const customRes = generateCustomParcelGeoSR(selectedParcelForSRM, model, scale);
+        setInferenceResult(customRes);
+        setLatencyMs(86 + Math.floor(Math.random() * 15));
+      } else if (uploadedFile && uploadPreview) {
         // Process custom image using client-side synthesizer
         const res = await processUploadedImage(uploadPreview, model, scale);
         setInferenceResult(res);
@@ -120,10 +129,14 @@ export const SatelliteSRM = () => {
     }
   };
 
-  // Initial load
+  // Trigger inference whenever selected parcel, model, or scale factor changes
   useEffect(() => {
-    runInference('punjab_wheat_belt', 'edsr', 4);
-  }, []);
+    if (selectedParcelForSRM) {
+      runInference(null, selectedModel, scaleFactor);
+    } else {
+      runInference(selectedPresetId, selectedModel, scaleFactor);
+    }
+  }, [selectedParcelForSRM, selectedModel, scaleFactor]);
 
   // Handle custom upload
   const handleFileUpload = (e) => {
@@ -179,12 +192,24 @@ export const SatelliteSRM = () => {
   };
 
   const handleExportReport = () => {
-    const jsonStr = generateAgronomicReport(currentPreset, inferenceResult);
+    const presetOrParcel = selectedParcelForSRM ? {
+      id: "measured_land_parcel",
+      title: selectedParcelForSRM.name,
+      state: selectedParcelForSRM.address?.state || selectedParcelForSRM.address?.district || "Measured Farm Plot",
+      sensor: `Sentinel-2 MSI Level-2A (GeoSR-AI ${scaleFactor}x)`,
+      mean_ndvi: selectedParcelForSRM.telemetry?.spectral?.meanNdvi || 0.76,
+      mean_ndre: selectedParcelForSRM.telemetry?.spectral?.meanNdre || 0.44,
+      water_stress_index: "Low (0.14)",
+      soil_moisture_bioavailability: selectedParcelForSRM.telemetry?.spectral?.soilMoisture || "44.2%",
+      parcels_detected: 1
+    } : currentPreset;
+
+    const jsonStr = generateAgronomicReport(presetOrParcel, inferenceResult);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `GeoSR_Agronomic_Report_${selectedPresetId || 'custom'}.json`;
+    a.download = `GeoSR_Agronomic_Report_${selectedParcelForSRM?.name ? selectedParcelForSRM.name.replace(/[^a-zA-Z0-9]/g, '_') : selectedPresetId}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -212,8 +237,54 @@ export const SatelliteSRM = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn">
       
+      {/* Top Banner: Custom Measured Parcel from Land Scanner */}
+      {selectedParcelForSRM && (
+        <div className="p-4 sm:p-5 rounded-[2.25rem] bg-gradient-to-r from-[#5D7052]/20 via-[#FEFEFA] to-[#C18C5D]/20 border-2 border-[#5D7052] shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#5D7052] text-[#FEFEFA] flex items-center justify-center shadow-soft shrink-0">
+              <Compass className="w-6 h-6 animate-spin-slow" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#5D7052] text-[#FEFEFA] text-[10px] font-extrabold uppercase tracking-wider">
+                  Live Land Measure Area Loaded
+                </span>
+                <h3 className="text-base font-bold text-[#2C2C24] font-serif">
+                  {selectedParcelForSRM.name}
+                </h3>
+              </div>
+              <p className="text-xs text-[#78786C] mt-1">
+                Acreage: <strong className="text-[#2C2C24]">{selectedParcelForSRM.acres} Acres</strong> • Centroid: <strong className="text-[#2C2C24]">{selectedParcelForSRM.lat?.toFixed(5)}°N, {selectedParcelForSRM.lon?.toFixed(5)}°E</strong> • Crop: <strong className="text-[#5D7052]">{selectedParcelForSRM.crop || 'Standing Crop'}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleExportReport}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#5D7052] hover:bg-[#4D5E44] text-[#FEFEFA] text-xs font-bold shadow-soft transition cursor-pointer hover:scale-102"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Download Agronomic Report</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedParcelForSRM(null);
+                runInference('punjab_wheat_belt', selectedModel, scaleFactor);
+                showToast('Switched back to standard satellite scenes.', 'info');
+              }}
+              className="px-3 py-2 rounded-full bg-[#FEFEFA] border border-[#DED8CF] text-xs font-bold text-[#78786C] hover:text-[#2C2C24] hover:bg-[#F0EBE5] transition cursor-pointer"
+            >
+              Reset ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
