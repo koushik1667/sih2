@@ -650,50 +650,249 @@ export function generateGeoTIFFBlob(sceneTitle = "punjab_wheat_belt", layer = "r
   return new Blob([buffer], { type: "image/tiff" });
 }
 
+// Detailed ICAR Agro-Climatic Crop Advisory & Rotation Engine
+export function getAgronomicCropAdvisory(lat = 14.25658, lon = 79.85595, ndvi = 0.78, ph = 6.8, currentCrop = "Wheat") {
+  let regionName = "Deccan Plateau & Coastal Basin";
+  let suggestedCrops = [];
+  let rotationPlan = {};
+
+  if (lat > 27) {
+    // North / Gangetic / Trans-Gangetic Plains
+    regionName = "Trans-Gangetic & Upper Gangetic Plains";
+    suggestedCrops = [
+      {
+        name: "Wheat (HD-2967 / PBW-550)",
+        season: "Rabi",
+        suitability: 96,
+        cycle_days: "135-145 days",
+        expected_yield: "22-26 Quintals/Acre",
+        water_req: "350-400 mm",
+        est_profit: "₹42,000 / Acre",
+        npk_demand: "N:120, P:60, K:40 kg/ha",
+        reason: "Optimal winter chill hours and high alluvial soil nitrogen capacity."
+      },
+      {
+        name: "Mustard / Rapeseed (Pusa Bold)",
+        season: "Rabi",
+        suitability: 92,
+        cycle_days: "110-120 days",
+        expected_yield: "8-11 Quintals/Acre",
+        water_req: "200-250 mm",
+        est_profit: "₹36,500 / Acre",
+        npk_demand: "N:80, P:40, K:40 kg/ha",
+        reason: "High oil content yield, low water requirement, excellent mandi market price."
+      },
+      {
+        name: "Basmati Paddy (PB-1121 / PB-1509)",
+        season: "Kharif",
+        suitability: 90,
+        cycle_days: "120-130 days",
+        expected_yield: "18-22 Quintals/Acre",
+        water_req: "1100-1250 mm",
+        est_profit: "₹52,000 / Acre",
+        npk_demand: "N:100, P:50, K:50 kg/ha",
+        reason: "Premium export mandi value and well-drained loamy soil structure."
+      }
+    ];
+    rotationPlan = {
+      kharif: "Basmati Rice / Moong Bean",
+      rabi: "Wheat / Mustard",
+      zaid: "Summer Moong (Green Manure / N-Fixation)",
+      restoration_benefit: "Fixes 35 kg/ha atmospheric nitrogen; maintains soil organic carbon > 0.85%."
+    };
+  } else if (lat < 18 && (lon > 77.0 || lon < 85.0)) {
+    // Andhra Pradesh / Telangana / Tamil Nadu / Coastal Plains (e.g. Madamanuru, Guntur, Warangal)
+    regionName = "Southern Deccan & East Coast Agricultural Basin";
+    suggestedCrops = [
+      {
+        name: "Paddy / Rice (BPT-5204 Samba Mahsuri / MTU-1010)",
+        season: "Kharif / Rabi",
+        suitability: 95,
+        cycle_days: "125-140 days",
+        expected_yield: "28-34 Quintals/Acre",
+        water_req: "1000-1200 mm",
+        est_profit: "₹45,000 / Acre",
+        npk_demand: "N:120, P:60, K:60 kg/ha",
+        reason: "Well-suited for canal & borewell irrigation with high tillering index in coastal alluvial/red soils."
+      },
+      {
+        name: "Black Gram / Urad (LBG-752 / PU-31)",
+        season: "Rabi (Post-Paddy) / Zaid",
+        suitability: 93,
+        cycle_days: "75-85 days",
+        expected_yield: "6-8 Quintals/Acre",
+        water_req: "150-200 mm (Residual moisture)",
+        est_profit: "₹32,000 / Acre",
+        npk_demand: "N:20, P:40, K:20 kg/ha (Rhizobium inoculated)",
+        reason: "Zero-tillage relay crop with natural nitrogen fixation, restoring depleted soil NPK."
+      },
+      {
+        name: "Groundnut / Peanut (Kadiri-6 / TAG-24)",
+        season: "Rabi / Kharif",
+        suitability: 91,
+        cycle_days: "105-115 days",
+        expected_yield: "14-18 Quintals/Acre",
+        water_req: "350-450 mm",
+        est_profit: "₹48,000 / Acre",
+        npk_demand: "N:25, P:50, K:75 kg/ha + Gypsum 200 kg",
+        reason: "High pod filling rate in sandy loam soil; rich pod oil content."
+      },
+      {
+        name: "Commercial Chilli / Cotton (Teja Chilli / Bt Cotton)",
+        season: "Kharif",
+        suitability: 88,
+        cycle_days: "150-180 days",
+        expected_yield: "20-25 Quintals/Acre (Dry Chilli)",
+        water_req: "600-750 mm (Drip)",
+        est_profit: "₹75,000 / Acre",
+        npk_demand: "N:150, P:60, K:80 kg/ha",
+        reason: "High commercial profitability; excellent response to micro-drip fertigation."
+      }
+    ];
+    rotationPlan = {
+      kharif: "Paddy (MTU-1010) / Cotton",
+      rabi: "Black Gram (LBG-752) / Groundnut",
+      zaid: "Sesame (Til) / Green Manure (Sunhemp)",
+      restoration_benefit: "Breaks pest lifecycle, prevents soil salinization, and enhances microbial biomass."
+    };
+  } else {
+    // Central Plateau / Maharashtra / Gujarat / MP
+    regionName = "Central & Western Agro-Plateau";
+    suggestedCrops = [
+      {
+        name: "Soybean (JS-335 / JS-9560)",
+        season: "Kharif",
+        suitability: 94,
+        cycle_days: "90-100 days",
+        expected_yield: "10-14 Quintals/Acre",
+        water_req: "450-500 mm",
+        est_profit: "₹38,000 / Acre",
+        npk_demand: "N:30, P:60, K:40 kg/ha",
+        reason: "Deep black soil water retention; natural atmospheric nitrogen fixation."
+      },
+      {
+        name: "Chickpea / Bengal Gram (JG-11 / Vishal)",
+        season: "Rabi",
+        suitability: 91,
+        cycle_days: "100-110 days",
+        expected_yield: "8-12 Quintals/Acre",
+        water_req: "250-300 mm",
+        est_profit: "₹35,000 / Acre",
+        npk_demand: "N:20, P:50, K:20 kg/ha",
+        reason: "Thrives in residual black cotton soil moisture; low irrigation requirement."
+      },
+      {
+        name: "Sugarcane / Cotton (Co-86032 / Bt Cotton)",
+        season: "Annual / Kharif",
+        suitability: 89,
+        cycle_days: "300-360 days",
+        expected_yield: "45-60 Tonnes/Acre",
+        water_req: "1500-1800 mm (Drip)",
+        est_profit: "₹72,000 / Acre",
+        npk_demand: "N:250, P:115, K:115 kg/ha",
+        reason: "High cash return near local processing mandis & sugar factories."
+      }
+    ];
+    rotationPlan = {
+      kharif: "Soybean",
+      rabi: "Chickpea / Wheat",
+      zaid: "Summer Onion / Fodder Maize",
+      restoration_benefit: "Restores organic carbon and balances micronutrient exhaustion."
+    };
+  }
+
+  return {
+    regionName,
+    suggestedCrops,
+    rotationPlan,
+    soilHealthScore: Math.min(95, Math.max(60, Math.round((ndvi || 0.78) * 100 + (ph >= 6.5 && ph <= 7.5 ? 12 : 5)))),
+    pestAdvisory: [
+      {
+        pest: "Stem Borer & Leaf Folder",
+        risk: "Low-Moderate",
+        treatment: "Spray Chlorantraniliprole 18.5% SC @ 60 ml/acre or install Pheromone Traps @ 5/acre.",
+        organic: "Release Trichogramma egg parasitoids @ 20,000/acre."
+      },
+      {
+        pest: "Sucking Pests (Aphids & Whitefly)",
+        risk: "Low",
+        treatment: "Spray Imidacloprid 17.8% SL @ 50 ml/acre in early morning hours.",
+        organic: "Neem Oil (Azadirachtin 10,000 ppm) @ 3 ml/litre water."
+      }
+    ],
+    schemes: [
+      {
+        name: "PM-Kisan Samman Nidhi",
+        benefit: "₹6,000 / year direct income support in 3 equal installments.",
+        status: "Eligible & Direct Bank Transfer"
+      },
+      {
+        name: "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+        benefit: "Comprehensive crop loss & localized weather insurance coverage (1.5%-2% premium).",
+        status: "Enrolment Open"
+      },
+      {
+        name: "Per Drop More Crop (Micro-Irrigation)",
+        benefit: "Up to 55%-70% subsidy on Drip and Sprinkler irrigation installation.",
+        status: "State Portal Application Active"
+      },
+      {
+        name: "SMAM Agri-Mechanization Subsidy",
+        benefit: "40% to 50% subsidy on Solar Pumps, Rotavators & Drone spraying.",
+        status: "Available via DBT Portal"
+      }
+    ]
+  };
+}
+
 // Generates an Agronomic Remote Sensing JSON / GeoJSON report
 export function generateAgronomicReport(preset, inferenceResult) {
+  const lat = preset?.coordinates?.lat || 14.25658;
+  const lon = preset?.coordinates?.lng || preset?.coordinates?.lon || 79.85595;
+  const ndvi = preset?.mean_ndvi || inferenceResult?.mean_ndvi || 0.78;
+  const cropAdvisory = getAgronomicCropAdvisory(lat, lon, ndvi, 6.8, preset?.crop || "Standing Crop");
+
   const data = {
     report_type: "GeoSR-AI Deep Agronomic & Parcel Inspection Analysis",
     generated_at: new Date().toISOString(),
     scene_id: preset?.id || "custom_upload",
-    scene_title: preset?.title || "Custom Satellite Tile",
+    scene_title: preset?.title || preset?.parcel_name || "Custom Satellite Tile",
     state_district: preset?.state || "Agro-Ecological Field Plot",
-    sensor_platform: preset?.sensor || "Sentinel-2 MSI Level-2A",
-    acquisition_date: preset?.date || "2026-02-18",
-    sun_azimuth_deg: preset?.solar_azimuth || 148.6,
-    sun_elevation_deg: preset?.sun_elevation || 54.2,
-    cloud_cover_pct: preset?.cloud_cover_pct || 0.8,
+    agro_climatic_region: cropAdvisory.regionName,
+    sensor_platform: preset?.sensor || "Sentinel-2 MSI Level-2A (GeoSR-AI 4x)",
+    acquisition_date: preset?.date || new Date().toISOString().split('T')[0],
+    coordinates: { lat, lon },
     super_resolution_framework: {
       model: inferenceResult?.model || "EDSR",
       scale_factor: `${inferenceResult?.scale_factor || 4}x`,
       native_gsd: inferenceResult?.ground_sampling_distance?.input || "10.0m GSD",
       super_resolved_gsd: inferenceResult?.ground_sampling_distance?.output || "2.50m GSD",
       metrics: inferenceResult?.metrics || {
-        psnr: 34.82,
-        ssim: 0.942,
-        sam: 2.14,
-        ergas: 1.84,
-        rmse: 0.024
+        psnr: 35.12,
+        ssim: 0.946,
+        sam: 2.08,
+        ergas: 1.78,
+        rmse: 0.022
       }
     },
     spectral_biomass_indices: {
-      mean_ndvi: preset?.mean_ndvi || 0.78,
+      mean_ndvi: ndvi,
       canopy_health_rating: "Vigorous / Optimal Vegetative Phase",
-      mean_ndre: preset?.mean_ndre || 0.42,
+      mean_ndre: preset?.mean_ndre || 0.44,
       chlorophyll_absorption_rating: "High Nitrogen & Chlorophyll Accumulation",
-      water_stress_index: preset?.water_stress_index || "Low (0.18)",
-      soil_moisture_bioavailability: preset?.soil_moisture_bioavailability || "42.5%"
+      water_stress_index: preset?.water_stress_index || "Low (0.14)",
+      soil_moisture_bioavailability: preset?.soil_moisture_bioavailability || "44.2%"
     },
+    suggested_crop_recommendations: cropAdvisory.suggestedCrops,
+    crop_rotation_strategy: cropAdvisory.rotationPlan,
+    soil_health_score: `${cropAdvisory.soilHealthScore} / 100`,
+    pest_and_disease_advisory: cropAdvisory.pestAdvisory,
+    government_schemes_and_subsidies: cropAdvisory.schemes,
     cadastral_parcels: {
-      count: preset?.parcels_detected || 6,
-      sub_holdings: [
-        { parcel_id: "PLT-001", crop: "Wheat", area_acres: 4.8, vigor_score: "0.82 NDVI", soil_status: "Adequate Moisture" },
-        { parcel_id: "PLT-002", crop: "Mustard", area_acres: 3.2, vigor_score: "0.74 NDVI", soil_status: "Optimal Aeration" },
-        { parcel_id: "PLT-003", crop: "Wheat", area_acres: 5.5, vigor_score: "0.85 NDVI", soil_status: "Canal Irrigated" },
-        { parcel_id: "PLT-004", crop: "Gram/Fodder", area_acres: 6.2, vigor_score: "0.68 NDVI", soil_status: "Moderate Moisture" }
-      ]
+      count: preset?.parcels_detected || 1,
+      total_acreage: preset?.acres || 2.5
     },
-    citation: "National Remote Sensing Centre (NRSC) & ICAR Agronomic GIS Specifications"
+    citation: "National Remote Sensing Centre (NRSC), ICAR & PM-Kisan Agricultural GIS Knowledge Base"
   };
 
   return JSON.stringify(data, null, 2);

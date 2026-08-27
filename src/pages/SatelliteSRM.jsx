@@ -33,7 +33,8 @@ import {
   processUploadedImage, 
   generateGeoTIFFBlob, 
   generateAgronomicReport,
-  generateCustomParcelGeoSR
+  generateCustomParcelGeoSR,
+  getAgronomicCropAdvisory
 } from '../utils/geoSrSynthesizer';
 import { synthesizeRealSatelliteScene } from '../utils/realSatelliteEngine';
 
@@ -829,33 +830,152 @@ export const SatelliteSRM = () => {
 
               </div>
 
-              {/* Actionable ICAR Agronomic Advisory Plan */}
-              <div className="p-5 rounded-2xl bg-[#5D7052]/10 border border-[#5D7052]/30 space-y-3">
-                <h4 className="text-xs font-bold text-[#2C2C24] uppercase tracking-wider flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#5D7052]" />
-                  <span>Actionable ICAR Scientific Agronomic Advisory</span>
-                </h4>
-                <div className="space-y-2 text-xs text-[#2C2C24]">
-                  <div className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 text-[#5D7052] shrink-0 mt-0.5" />
-                    <p>
-                      <strong>Fertilizer Dosing:</strong> Apply Urea top-dressing at <strong>35 kg/acre</strong> at the first irrigation node (tillering stage) to sustain vigorous vegetative chlorophyll synthesis.
-                    </p>
+              {/* 🌟 AI Suggested Crop Recommendations & Suitability Matrix */}
+              {(() => {
+                const adv = getAgronomicCropAdvisory(
+                  selectedParcelForSRM?.lat || currentPreset?.coordinates?.lat || 14.25658,
+                  selectedParcelForSRM?.lon || currentPreset?.coordinates?.lng || 79.85595,
+                  inferenceResult.mean_ndvi || 0.78,
+                  inferenceResult.soil_ph || 6.8,
+                  selectedParcelForSRM?.crop || currentPreset?.title || "Standing Crop"
+                );
+
+                return (
+                  <div className="space-y-6 pt-2">
+                    
+                    {/* Suggested Crops Card */}
+                    <div className="p-5 rounded-2xl bg-[#FEFEFA] border border-[#DED8CF] shadow-xs space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#DED8CF]/60">
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase text-[#5D7052] tracking-wider block">
+                            ICAR Agro-Climatic Intelligence • {adv.regionName}
+                          </span>
+                          <h4 className="text-base font-bold text-[#2C2C24] font-serif">
+                            🌾 Top Recommended Crops for this Parcel
+                          </h4>
+                        </div>
+                        <span className="text-xs font-bold text-[#5D7052] px-3 py-1 rounded-full bg-[#5D7052]/10 border border-[#5D7052]/20 self-start sm:self-auto">
+                          Soil Health Score: {adv.soilHealthScore} / 100
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {adv.suggestedCrops.map((crop, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-[#F0EBE5]/40 border border-[#DED8CF] hover:border-[#5D7052] transition space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-xs font-bold text-[#2C2C24] block">{crop.name}</span>
+                                <span className="text-[10px] font-semibold text-[#78786C]">{crop.season} • {crop.cycle_days}</span>
+                              </div>
+                              <span className="px-2.5 py-1 rounded-full bg-[#5D7052] text-[#FEFEFA] text-xs font-extrabold shadow-xs">
+                                {crop.suitability}% Match
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-[#78786C] italic leading-tight">
+                              "{crop.reason}"
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#DED8CF]/50 text-[11px]">
+                              <div>
+                                <span className="text-[#78786C] block text-[10px]">Expected Yield:</span>
+                                <strong className="text-[#2C2C24]">{crop.expected_yield}</strong>
+                              </div>
+                              <div>
+                                <span className="text-[#78786C] block text-[10px]">Est. Profit Margin:</span>
+                                <strong className="text-[#5D7052]">{crop.est_profit}</strong>
+                              </div>
+                              <div>
+                                <span className="text-[#78786C] block text-[10px]">Water Demand:</span>
+                                <span className="text-[#2C2C24]">{crop.water_req}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#78786C] block text-[10px]">NPK Demand:</span>
+                                <span className="text-[#2C2C24] font-mono text-[10px]">{crop.npk_demand}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Crop Rotation Strategy Card */}
+                    <div className="p-5 rounded-2xl bg-[#5D7052]/10 border border-[#5D7052]/30 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#2C2C24] flex items-center gap-2 uppercase tracking-wider">
+                          <Sprout className="w-4 h-4 text-[#5D7052]" />
+                          <span>Optimal 3-Season Soil Restorative Crop Rotation</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-[#5D7052] px-2 py-0.5 rounded-full bg-[#FEFEFA] border border-[#5D7052]/30">
+                          Zero Depletion Cycle
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="p-3 rounded-xl bg-[#FEFEFA] border border-[#DED8CF]">
+                          <span className="text-[10px] font-bold text-[#5D7052] block uppercase">1. Kharif Season</span>
+                          <strong className="text-xs text-[#2C2C24] block mt-0.5">{adv.rotationPlan.kharif}</strong>
+                        </div>
+                        <div className="p-3 rounded-xl bg-[#FEFEFA] border border-[#DED8CF]">
+                          <span className="text-[10px] font-bold text-[#C18C5D] block uppercase">2. Rabi Season</span>
+                          <strong className="text-xs text-[#2C2C24] block mt-0.5">{adv.rotationPlan.rabi}</strong>
+                        </div>
+                        <div className="p-3 rounded-xl bg-[#FEFEFA] border border-[#DED8CF]">
+                          <span className="text-[10px] font-bold text-[#4A90E2] block uppercase">3. Zaid (Summer)</span>
+                          <strong className="text-xs text-[#2C2C24] block mt-0.5">{adv.rotationPlan.zaid}</strong>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-[#78786C] pt-1">
+                        <strong>Soil Benefit:</strong> {adv.rotationPlan.restoration_benefit}
+                      </p>
+                    </div>
+
+                    {/* Pest & Disease Risk Mitigation */}
+                    <div className="p-5 rounded-2xl bg-[#FEFEFA] border border-[#DED8CF] space-y-3">
+                      <h4 className="text-xs font-bold text-[#2C2C24] uppercase tracking-wider flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-[#A85448]" />
+                        <span>Pest &amp; Pathogen Prevention Protocol</span>
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        {adv.pestAdvisory.map((pest, i) => (
+                          <div key={i} className="p-3.5 rounded-xl bg-[#F0EBE5]/40 border border-[#DED8CF] space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#2C2C24]">{pest.pest}</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#C18C5D]/20 text-[#C18C5D] font-bold">{pest.risk}</span>
+                            </div>
+                            <p className="text-[11px] text-[#78786C]"><strong>Chemical:</strong> {pest.treatment}</p>
+                            <p className="text-[11px] text-[#5D7052]"><strong>Organic/Bio:</strong> {pest.organic}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Government Scheme & Subsidies */}
+                    <div className="p-5 rounded-2xl bg-[#C18C5D]/10 border border-[#C18C5D]/30 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-[#2C2C24] uppercase tracking-wider flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-[#C18C5D]" />
+                          <span>Applicable Government Schemes &amp; Subsidies</span>
+                        </h4>
+                        <span className="text-[10px] font-bold text-[#C18C5D]">Direct Benefit Transfer (DBT)</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        {adv.schemes.map((scheme, i) => (
+                          <div key={i} className="p-3 rounded-xl bg-[#FEFEFA] border border-[#DED8CF] space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#2C2C24]">{scheme.name}</span>
+                              <span className="text-[9px] px-2 py-0.2 rounded-full bg-[#5D7052]/15 text-[#5D7052] font-bold">{scheme.status}</span>
+                            </div>
+                            <p className="text-[11px] text-[#78786C]">{scheme.benefit}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                   </div>
-                  <div className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 text-[#5D7052] shrink-0 mt-0.5" />
-                    <p>
-                      <strong>Irrigation Cycle:</strong> Maintain canal/tube-well moisture level above 40%. The next recommended irrigation window is in <strong>4 to 6 days</strong>.
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <ChevronRight className="w-4 h-4 text-[#5D7052] shrink-0 mt-0.5" />
-                    <p>
-                      <strong>Prophylactic Protection:</strong> Multi-spectral Band 8 NIR response indicates healthy foliage with zero rust/blight patches. Continue standard bio-pesticide neem spray during dry afternoon windows.
-                    </p>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
             </div>
           )}
