@@ -298,10 +298,18 @@ export const MultilingualVoiceAgent = ({ isOpen, onClose }) => {
     setIsSpeaking(false);
   };
 
-  if (!isOpen) {
-    nativeAudioSpeaker.stop();
-    return null;
-  }
+  useEffect(() => {
+    if (!isOpen) {
+      nativeAudioSpeaker.stop();
+      if (synthRef.current) {
+        try { synthRef.current.cancel(); } catch (_) {}
+      }
+      setIsSpeaking(false);
+      setIsListening(false);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const currentLangObj = SUPPORTED_LANGUAGES.find(l => l.code === lang) || SUPPORTED_LANGUAGES[0];
   const samplePrompts = SAMPLE_VOICE_PROMPTS[lang] || SAMPLE_VOICE_PROMPTS.en;

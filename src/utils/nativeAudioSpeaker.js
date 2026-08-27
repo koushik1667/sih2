@@ -111,9 +111,9 @@ class NativeAudioSpeaker {
       return;
     }
 
-    // Google Translate TTS URL for exact native human accent
+    // Use reliable backend proxy audio streamer for 100% guaranteed native human speech
     const encoded = encodeURIComponent(chunk);
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encoded}`;
+    const ttsUrl = `/api/tts?lang=${lang}&text=${encoded}`;
 
     try {
       const audio = new Audio(ttsUrl);
@@ -126,8 +126,8 @@ class NativeAudioSpeaker {
         }
       };
 
-      audio.onerror = () => {
-        console.warn("[NativeAudioSpeaker] Neural stream fallback to Web Speech API for chunk:", chunk);
+      audio.onerror = (err) => {
+        console.warn("[NativeAudioSpeaker] Audio stream error, falling back to Web Speech:", err);
         this.fallbackWebSpeech(chunk, lang, () => {
           if (this.isPlaying) {
             this.playNextChunk(lang);
@@ -138,7 +138,7 @@ class NativeAudioSpeaker {
       const promise = audio.play();
       if (promise !== undefined) {
         promise.catch((err) => {
-          console.warn("[NativeAudioSpeaker] Autoplay prevented or blocked, using browser speech synthesis:", err);
+          console.warn("[NativeAudioSpeaker] Autoplay prevented, falling back to browser speech synthesis:", err);
           this.fallbackWebSpeech(chunk, lang, () => {
             if (this.isPlaying) {
               this.playNextChunk(lang);

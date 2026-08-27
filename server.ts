@@ -1039,6 +1039,43 @@ app.post("/api/translate/batch", async (req, res) => {
   });
 });
 
+// 9. High-Fidelity Multilingual TTS Audio Streamer Endpoint
+app.get("/api/tts", async (req, res) => {
+  try {
+    const text = (req.query.text as string) || "";
+    const lang = (req.query.lang as string) || "en";
+    if (!text || !text.trim()) {
+      return res.status(400).send("No text provided");
+    }
+
+    const chunk = encodeURIComponent(text.slice(0, 200).trim());
+    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${chunk}`;
+
+    const response = await fetch(googleTtsUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Referer": "https://translate.google.com/"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).send("TTS upstream error");
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Length", buffer.length);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.send(buffer);
+  } catch (err: any) {
+    console.warn("[TTS Stream Error]", err.message);
+    res.status(500).send(err.message);
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 8.5 REAL-TIME METEOROLOGY & AGRO-WEATHER RADAR (OPEN-METEO PRECISION ENGINE)
 // ─────────────────────────────────────────────────────────────────────────────
