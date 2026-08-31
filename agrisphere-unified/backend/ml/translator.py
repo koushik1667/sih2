@@ -5,10 +5,17 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-# Add argos-translate-master to sys.path if available
-ARGOS_SRC = Path(r"c:\Users\koushik\Downloads\sih2\argos-translate-master")
-if ARGOS_SRC.exists() and str(ARGOS_SRC) not in sys.path:
-    sys.path.insert(0, str(ARGOS_SRC))
+# Add argos-translate-master to sys.path if available dynamically
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+SIH2_ROOT = BACKEND_DIR.parent
+argos_candidates = [
+    SIH2_ROOT / "argos-translate-master",
+    Path(__file__).resolve().parents[2] / "argos-translate-master",
+]
+for candidate in argos_candidates:
+    if candidate.exists() and str(candidate) not in sys.path:
+        sys.path.insert(0, str(candidate))
+        break
 
 logger = logging.getLogger("agrisphere.translator")
 

@@ -1,7 +1,12 @@
+import sqlite3
+import json
+import uuid
+import datetime
+from pathlib import Path
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-import uuid
+from config import DATA_DIR
 
 router = APIRouter(prefix="/api/farms", tags=["Farm & Field Management"])
 
@@ -101,8 +106,98 @@ DEMO_FARMS = [
     }
 ]
 
-# Mutable store for live session
-_FARMS_DB = list(DEMO_FARMS)
+DB_PATH = DATA_DIR / "farms.db"
+
+def get_db_connection():
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def _insert_farm_row(cursor, farm_dict: Dict[str, Any]):
+    cursor.execute("""
+        INSERT OR REPLACE INTO farms (
+            id, name, farmer_name, location, coordinates_json,
+            land_size_acres, soil_type, irrigation_type, current_crop,
+            active_season, soil_health_json, last_tested
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        farm_dict["id"],
+        farm_dict["name"],
+        farm_dict["farmer_name"],
+        farm_dict["location"],
+        json.dumps(farm_dict.get("coordinates", {"lat": 22.7196, "lng": 75.8577})),
+        float(farm_dict["land_size_acres"]),
+        farm_dict["soil_type"],
+        farm_dict["irrigation_type"],
+        farm_dict["current_crop"],
+        farm_dict.get("active_season", "Kharif 2026"),
+        json.dumps(farm_dict["soil_health"]),
+        farm_dict.get("last_tested", datetime.date.today().isoformat())
+    ))
+
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS farms (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            farmer_name TEXT NOT NULL,
+            location TEXT NOT NULL,
+            coordinates_json TEXT NOT NULL,
+            land_size_acres REAL NOT NULL,
+            soil_type TEXT NOT NULL,
+            irrigation_type TEXT NOT NULL,
+            current_crop TEXT NOT NULL,
+            active_season TEXT NOT NULL,
+            soil_health_json TEXT NOT NULL,
+            last_tested TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+    # Check count, seed if empty
+    cursor.execute("SELECT COUNT(*) as cnt FROM farms")
+    count = cursor.fetchone()["cnt"]
+    
+    if count == 0:
+        initial_farms = DEMO_FARMS
+        farms_file = DATA_DIR / "farms.json"
+        if farms_file.exists():
+            try:
+                with open(farms_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, list) and len(data) > 0:
+                        initial_farms = data
+            except Exception:
+                pass
+        
+        for farm in initial_farms:
+            _insert_farm_row(cursor, farm)
+        conn.commit()
+
+    conn.close()
+
+# Initialize DB table on module load
+init_db()
+
+def _row_to_farm_dict(row) -> Dict[str, Any]:
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "farmer_name": row["farmer_name"],
+        "location": row["location"],
+        "coordinates": json.loads(row["coordinates_json"]),
+        "land_size_acres": float(row["land_size_acres"]),
+        "soil_type": row["soil_type"],
+        "irrigation_type": row["irrigation_type"],
+        "current_crop": row["current_crop"],
+        "active_season": row["active_season"],
+        "soil_health": json.loads(row["soil_health_json"]),
+        "last_tested": row["last_tested"]
+    }
 
 
 class FarmCreateRequest(BaseModel):
@@ -122,24 +217,51 @@ class FarmCreateRequest(BaseModel):
     moisture: Optional[float] = 35.0
 
 
+class FarmUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    farmer_name: Optional[str] = None
+    location: Optional[str] = None
+    land_size_acres: Optional[float] = None
+    soil_type: Optional[str] = None
+    irrigation_type: Optional[str] = None
+    current_crop: Optional[str] = None
+    active_season: Optional[str] = None
+    nitrogen: Optional[float] = None
+    phosphorus: Optional[float] = None
+    potassium: Optional[float] = None
+    ph: Optional[float] = None
+    organic_carbon: Optional[float] = None
+    moisture: Optional[float] = None
+
+
 @router.get("")
 def list_farms():
-    """Returns all registered farm profiles with soil health indicators."""
-    return {"farms": _FARMS_DB, "total": len(_FARMS_DB)}
+    """Returns all registered farm profiles from SQLite database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM farms ORDER BY rowid DESC")
+    rows = cursor.fetchall()
+    farms = [_row_to_farm_dict(r) for r in rows]
+    conn.close()
+    return {"farms": farms, "total": len(farms)}
 
 
 @router.get("/{farm_id}")
 def get_farm(farm_id: str):
-    """Retrieves a single farm profile by ID."""
-    for f in _FARMS_DB:
-        if f["id"] == farm_id:
-            return f
-    raise HTTPException(status_code=404, detail="Farm not found")
+    """Retrieves a single farm profile by ID from SQLite database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM farms WHERE id = ?", (farm_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Farm not found")
+    return _row_to_farm_dict(row)
 
 
 @router.post("")
 def create_farm(req: FarmCreateRequest):
-    """Creates a new farm profile with initial soil health parameters."""
+    """Creates a new farm profile and saves it to SQLite database."""
     from ml.soil_predictor import calculate_soil_health_score
     
     score_res = calculate_soil_health_score(
@@ -151,8 +273,11 @@ def create_farm(req: FarmCreateRequest):
         moisture=req.moisture or 35.0
     )
 
+    today_str = datetime.date.today().isoformat()
+    farm_id = f"farm-{uuid.uuid4().hex[:8]}"
+
     new_farm = {
-        "id": f"farm-{uuid.uuid4().hex[:8]}",
+        "id": farm_id,
         "name": req.name,
         "farmer_name": req.farmer_name,
         "location": req.location,
@@ -172,18 +297,89 @@ def create_farm(req: FarmCreateRequest):
             "organic_carbon": req.organic_carbon or 0.78,
             "moisture": req.moisture or 35.0
         },
-        "last_tested": "2026-08-25"
+        "last_tested": today_str
     }
-    _FARMS_DB.insert(0, new_farm)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    _insert_farm_row(cursor, new_farm)
+    conn.commit()
+    conn.close()
+
     return {"status": "success", "farm": new_farm}
+
+
+@router.put("/{farm_id}")
+@router.patch("/{farm_id}")
+def update_farm(farm_id: str, req: FarmUpdateRequest):
+    """Updates an existing farm profile in SQLite database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM farms WHERE id = ?", (farm_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    existing = _row_to_farm_dict(row)
+    
+    if req.name is not None: existing["name"] = req.name
+    if req.farmer_name is not None: existing["farmer_name"] = req.farmer_name
+    if req.location is not None: existing["location"] = req.location
+    if req.land_size_acres is not None: existing["land_size_acres"] = req.land_size_acres
+    if req.soil_type is not None: existing["soil_type"] = req.soil_type
+    if req.irrigation_type is not None: existing["irrigation_type"] = req.irrigation_type
+    if req.current_crop is not None: existing["current_crop"] = req.current_crop
+    if req.active_season is not None: existing["active_season"] = req.active_season
+
+    sh = existing["soil_health"]
+    new_n = req.nitrogen if req.nitrogen is not None else sh.get("nitrogen", 160.0)
+    new_p = req.phosphorus if req.phosphorus is not None else sh.get("phosphorus", 28.0)
+    new_k = req.potassium if req.potassium is not None else sh.get("potassium", 140.0)
+    new_ph = req.ph if req.ph is not None else sh.get("ph", 6.9)
+    new_oc = req.organic_carbon if req.organic_carbon is not None else sh.get("organic_carbon", 0.78)
+    new_m = req.moisture if req.moisture is not None else sh.get("moisture", 35.0)
+
+    from ml.soil_predictor import calculate_soil_health_score
+    score_res = calculate_soil_health_score(
+        nitrogen=new_n,
+        phosphorus=new_p,
+        potassium=new_k,
+        ph=new_ph,
+        organic_carbon=new_oc,
+        moisture=new_m
+    )
+
+    existing["soil_health"] = {
+        "score": score_res["score"],
+        "risk_level": score_res["risk_level"],
+        "nitrogen": new_n,
+        "phosphorus": new_p,
+        "potassium": new_k,
+        "ph": new_ph,
+        "organic_carbon": new_oc,
+        "moisture": new_m
+    }
+    existing["last_tested"] = datetime.date.today().isoformat()
+
+    _insert_farm_row(cursor, existing)
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "farm": existing}
 
 
 @router.delete("/{farm_id}")
 def delete_farm(farm_id: str):
-    """Deletes a farm profile."""
-    global _FARMS_DB
-    initial_len = len(_FARMS_DB)
-    _FARMS_DB = [f for f in _FARMS_DB if f["id"] != farm_id]
-    if len(_FARMS_DB) == initial_len:
+    """Deletes a farm profile from SQLite database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM farms WHERE id = ?", (farm_id,))
+    if not cursor.fetchone():
+        conn.close()
         raise HTTPException(status_code=404, detail="Farm not found")
+        
+    cursor.execute("DELETE FROM farms WHERE id = ?", (farm_id,))
+    conn.commit()
+    conn.close()
     return {"status": "deleted", "id": farm_id}

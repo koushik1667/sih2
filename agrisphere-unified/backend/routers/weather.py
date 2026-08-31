@@ -15,8 +15,16 @@ def get_weather_forecast(
     Returns live agricultural micro-climate weather forecast, 24-hour precipitation radar,
     and precision spraying advisories for specified location or live GPS coordinates.
     """
-    effective_lat = lat if lat is not None else 30.9010
-    effective_lon = lon if lon is not None else 75.8573
+    # Extract numeric values if called directly or with Query default objects
+    if not isinstance(location, str):
+        location = "Ludhiana, Punjab"
+    if not isinstance(lat, (int, float)):
+        lat = None
+    if not isinstance(lon, (int, float)):
+        lon = None
+
+    effective_lat = float(lat) if lat is not None else 30.9010
+    effective_lon = float(lon) if lon is not None else 75.8573
     
     # Compute realistic baseline based on Indian latitudes
     # Northern plains (lat > 28): 26 - 32 C

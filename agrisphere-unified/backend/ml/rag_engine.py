@@ -117,6 +117,19 @@ def generate_rag_response(
         "Explore PMKSY micro-irrigation subsidy"
     ]
 
+    # Translate response fields if requested language is not English
+    if language and language.lower() != "en":
+        try:
+            from ml.translator import translator_engine
+            full_text = translator_engine.translate_text(full_text, from_code="en", to_code=language)
+            topic = translator_engine.translate_text(topic, from_code="en", to_code=language)
+            suggested_actions = [
+                translator_engine.translate_text(act, from_code="en", to_code=language)
+                for act in suggested_actions
+            ]
+        except Exception as e:
+            pass
+
     return {
         "query": query,
         "language": language,
@@ -126,3 +139,4 @@ def generate_rag_response(
         "suggested_actions": suggested_actions,
         "sources_used": len(results)
     }
+
